@@ -547,6 +547,7 @@ function apiFetch(action) {
     const callbackName = 'cb_' + Math.random().toString(36).substr(2, 9);
     const script = document.createElement('script');
     const url = API + '?action=' + action + '&callback=' + callbackName;
+    console.log('[JSONP] apiFetch →', url);
 
     window[callbackName] = function(data) {
       delete window[callbackName];
