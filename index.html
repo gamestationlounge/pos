@@ -540,18 +540,23 @@ async function startDay() {
 }
 
 // ── API ───────────────────────────────────────────────────────────
+// All calls use GET to avoid CORS preflight. GAS redirects POST→GET and strips
+// the body; encoding the payload as a URL param sidesteps that entirely.
 async function apiFetch(action) {
-  const r = await fetch(`${API}?action=${action}`);
+  const r = await fetch(`${API}?action=${action}`, {
+    method: 'GET',
+    redirect: 'follow',
+    mode: 'cors',
+  });
   return r.json();
 }
 
 async function apiPost(data) {
-  // text/plain keeps this a CORS "simple request" — no preflight OPTIONS needed.
-  // GAS does not respond to OPTIONS, so application/json would always fail.
-  const r = await fetch(API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(data)
+  const payload = encodeURIComponent(JSON.stringify(data));
+  const r = await fetch(`${API}?payload=${payload}`, {
+    method: 'GET',
+    redirect: 'follow',
+    mode: 'cors',
   });
   return r.json();
 }
