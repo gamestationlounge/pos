@@ -423,6 +423,7 @@ let totalRevenue=0, syncing=false;
 
 // ── INIT ─────────────────────────────────────────────────────────
 async function init() {
+  console.log('[INIT] starting — build:d996745');
   setStatus('CONNECTING TO GOOGLE SHEETS...');
   buildSetupFields();
 
@@ -440,6 +441,7 @@ async function init() {
       apiFetch('GET_PRICES'),
       apiFetch('GET_LAST_STOCK')
     ]);
+    console.log('[INIT] Promise.all resolved — pricesRes.ok:', pricesRes && pricesRes.ok, '| stockRes.ok:', stockRes && stockRes.ok);
 
     // Override with saved prices from Sheet
     if (pricesRes.ok && pricesRes.prices.length > 0) {
@@ -559,12 +561,14 @@ function apiFetch(action) {
     console.log('[JSONP] apiFetch →', url);
 
     window[callbackName] = function(data) {
+      console.log('[JSONP] callback fired for action, ok:', data && data.ok);
       delete window[callbackName];
       document.body.removeChild(script);
       resolve(data);
     };
 
     script.onerror = function() {
+      console.error('[JSONP] script.onerror — network error loading script');
       delete window[callbackName];
       document.body.removeChild(script);
       reject(new Error('JSONP failed'));
@@ -583,12 +587,14 @@ function apiPost(data) {
     const url = API + '?payload=' + payload + '&callback=' + callbackName;
 
     window[callbackName] = function(data) {
+      console.log('[JSONP] callback fired for action, ok:', data && data.ok);
       delete window[callbackName];
       document.body.removeChild(script);
       resolve(data);
     };
 
     script.onerror = function() {
+      console.error('[JSONP] script.onerror — network error loading script');
       delete window[callbackName];
       document.body.removeChild(script);
       reject(new Error('JSONP failed'));
