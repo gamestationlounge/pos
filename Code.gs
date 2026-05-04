@@ -31,37 +31,44 @@ function markAlertSent(product) {
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
-    return routeAction(data);
+    return respond(getResult(data));
   } catch (err) {
     return respond({ ok: false, error: err.toString() });
   }
 }
 function doGet(e) {
   try {
-    // Write operations arrive here when a browser converts a POST→GET on redirect.
-    // index.html encodes the full JSON payload as ?payload=... in that case.
+    let result;
     if (e.parameter.payload) {
-      const data = JSON.parse(e.parameter.payload);
-      return routeAction(data);
+      result = getResult(JSON.parse(e.parameter.payload));
+    } else {
+      const action = e.parameter.action;
+      if      (action === 'GET_LAST_STOCK') result = getLastStock();
+      else if (action === 'GET_PRICES')     result = getPrices();
+      else                                  result = { ok: false, error: 'Unknown action' };
     }
-    // Normal read-only GET calls
-    const action = e.parameter.action;
-    if (action === 'GET_LAST_STOCK') return respond(getLastStock());
-    if (action === 'GET_PRICES')     return respond(getPrices());
-    return respond({ ok: false, error: 'Unknown action' });
+    // JSONP: wrap result in callback(json) so <script> tag injection works
+    const cb = e.parameter.callback;
+    if (cb) {
+      return ContentService
+        .createTextOutput(cb + '(' + JSON.stringify(result) + ')')
+        .setMimeType(ContentService.MimeType.TEXT);
+    }
+    return respond(result);
   } catch (err) {
     return respond({ ok: false, error: err.toString() });
   }
 }
-function routeAction(data) {
+// Returns a plain object — used by both doPost and JSONP doGet
+function getResult(data) {
   const action = data.action;
-  if (action === 'LOG_SALE')          return respond(logSale(data));
-  if (action === 'END_DAY')           return respond(endDay(data));
-  if (action === 'GET_LAST_STOCK')    return respond(getLastStock());
-  if (action === 'UPDATE_PRICES')     return respond(updatePrices(data));
-  if (action === 'GET_PRICES')        return respond(getPrices());
-  if (action === 'CHECK_STOCK_ALERT') return respond(checkStockAlert(data));
-  return respond({ ok: false, error: 'Unknown action' });
+  if (action === 'LOG_SALE')          return logSale(data);
+  if (action === 'END_DAY')           return endDay(data);
+  if (action === 'GET_LAST_STOCK')    return getLastStock();
+  if (action === 'UPDATE_PRICES')     return updatePrices(data);
+  if (action === 'GET_PRICES')        return getPrices();
+  if (action === 'CHECK_STOCK_ALERT') return checkStockAlert(data);
+  return { ok: false, error: 'Unknown action' };
 }
 function respond(obj) {
   return ContentService
