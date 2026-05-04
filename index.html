@@ -426,21 +426,21 @@ async function init() {
   setStatus('CONNECTING TO GOOGLE SHEETS...');
   buildSetupFields();
 
+  // Always apply defaults immediately so setup works even if API is unreachable
+  PRODUCTS.forEach(p => {
+    if (DEFAULT_PRICES[p]) {
+      prices[p] = DEFAULT_PRICES[p];
+      const el = document.getElementById("pr_" + p.replace(/\W/g,"_"));
+      if (el) el.value = DEFAULT_PRICES[p];
+    }
+  });
+
   try {
-    // Load prices and last stock in parallel
     const [pricesRes, stockRes] = await Promise.all([
       apiFetch('GET_PRICES'),
       apiFetch('GET_LAST_STOCK')
     ]);
 
-    // Pre-fill default prices first
-    PRODUCTS.forEach(p => {
-      if (DEFAULT_PRICES[p]) {
-        prices[p] = DEFAULT_PRICES[p];
-        const el = document.getElementById("pr_" + p.replace(/\W/g,"_"));
-        if (el) el.value = DEFAULT_PRICES[p];
-      }
-    });
     // Override with saved prices from Sheet
     if (pricesRes.ok && pricesRes.prices.length > 0) {
       pricesRes.prices.forEach(p => {
@@ -450,7 +450,7 @@ async function init() {
       });
       document.getElementById("prices-status").textContent = "✓ Saved prices loaded from Sheet";
     } else {
-      document.getElementById("prices-status").textContent = "✓ Default prices pre-loaded";
+      document.getElementById("prices-status").textContent = "✓ Default prices loaded";
     }
 
     // Apply last closing stock
@@ -472,9 +472,11 @@ async function init() {
     setStatus('READY');
     setTimeout(() => showScreen('s-setup'), 500);
   } catch(e) {
-    setStatus('OFFLINE — CHECK WIFI');
-    setTimeout(() => showScreen('s-setup'), 1500);
-    showToast('Could not connect to Google Sheets — check WiFi', 'warn');
+    // API unreachable — defaults already applied, proceed silently
+    document.getElementById("prices-status").textContent = "✓ Default prices loaded";
+    document.getElementById('stock-status').textContent = 'Enter opening stock below';
+    setStatus('READY');
+    setTimeout(() => showScreen('s-setup'), 500);
   }
 }
 
