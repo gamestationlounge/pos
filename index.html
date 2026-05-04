@@ -459,13 +459,16 @@ async function init() {
       const dateStr = stockRes.stock[0]?.date;
       let filled = 0;
       stockRes.stock.forEach(s => {
-        const el = document.getElementById('op_' + s.product.replace(/\W/g,'_'));
+        const id = 'op_' + s.product.replace(/\W/g,'_');
+        const el = document.getElementById(id);
         if (el) {
+          console.log('[STOCK]', id, '← remaining:', s.remaining, '(type:', typeof s.remaining + ')');
           el.value = s.remaining;
+          console.log('[STOCK]', id, 'el.value after set:', el.value);
           el.closest('.stock-row')?.classList.add('loaded');
           filled++;
         } else {
-          console.warn('[STOCK] No field found for product:', s.product);
+          console.warn('[STOCK] No field found for product:', s.product, '| looked for id:', id);
         }
       });
       console.log('[STOCK] Filled', filled, 'of', stockRes.stock.length, 'products');
@@ -492,18 +495,17 @@ function setStatus(msg) {
 }
 
 function buildSetupFields() {
-  // Price grid
-  const pg = document.getElementById('price-grid');
-  PRODUCTS.forEach(p => {
+  // Build full HTML once — avoids innerHTML += in a loop which destroys and
+  // recreates every existing node on each iteration, causing stale references.
+  document.getElementById('price-grid').innerHTML = PRODUCTS.map(p => {
     const id = 'pr_' + p.replace(/\W/g,'_');
-    pg.innerHTML += `<div class="price-row"><span title="${p}">${p}</span><input type="number" min="0" id="${id}" placeholder="0"/></div>`;
-  });
-  // Stock grid
-  const sg = document.getElementById('stock-grid');
-  PRODUCTS.forEach(p => {
+    return `<div class="price-row"><span title="${p}">${p}</span><input type="number" min="0" id="${id}" placeholder="0"/></div>`;
+  }).join('');
+
+  document.getElementById('stock-grid').innerHTML = PRODUCTS.map(p => {
     const id = 'op_' + p.replace(/\W/g,'_');
-    sg.innerHTML += `<div class="stock-row"><span title="${p}">${p}</span><input type="number" min="0" value="0" id="${id}"/></div>`;
-  });
+    return `<div class="stock-row"><span title="${p}">${p}</span><input type="number" min="0" value="0" id="${id}"/></div>`;
+  }).join('');
 }
 
 // ── START DAY ─────────────────────────────────────────────────────
