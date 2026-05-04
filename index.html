@@ -454,18 +454,25 @@ async function init() {
     }
 
     // Apply last closing stock
+    console.log('[STOCK] GET_LAST_STOCK response:', JSON.stringify(stockRes));
     if (stockRes.ok && stockRes.stock.length > 0) {
       const dateStr = stockRes.stock[0]?.date;
+      let filled = 0;
       stockRes.stock.forEach(s => {
         const el = document.getElementById('op_' + s.product.replace(/\W/g,'_'));
         if (el) {
           el.value = s.remaining;
           el.closest('.stock-row')?.classList.add('loaded');
+          filled++;
+        } else {
+          console.warn('[STOCK] No field found for product:', s.product);
         }
       });
+      console.log('[STOCK] Filled', filled, 'of', stockRes.stock.length, 'products');
       document.getElementById('stock-status').textContent =
         `✓ Auto-loaded from ${dateStr ? new Date(dateStr).toLocaleDateString('en-GB') : 'last session'}`;
     } else {
+      console.log('[STOCK] No closing stock data — sheet empty or first run');
       document.getElementById('stock-status').textContent = 'Enter opening stock below';
     }
 
