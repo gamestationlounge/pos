@@ -546,8 +546,11 @@ async function apiFetch(action) {
 }
 
 async function apiPost(data) {
+  // text/plain keeps this a CORS "simple request" — no preflight OPTIONS needed.
+  // GAS does not respond to OPTIONS, so application/json would always fail.
   const r = await fetch(API, {
     method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(data)
   });
   return r.json();
