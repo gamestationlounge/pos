@@ -470,11 +470,56 @@ let stock={}, prices={}, salesLog=[], txCount=0, shiftInfo={};
 let selProd=null, selQty=0, activeCat='All', search='';
 let totalRevenue=0, syncing=false;
 
+const SESSION_KEY = 'gsl_session';
+
+function saveSession() {
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      date: shiftInfo.date, name: shiftInfo.name, startTime: shiftInfo.startTime,
+      stock, prices, salesLog, totalRevenue, txCount
+    }));
+  } catch(e) {}
+}
+
+function clearSession() {
+  try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
+}
+
 // ── INIT ─────────────────────────────────────────────────────────
 async function init() {
   console.log('[INIT] starting');
   setStatus('LOADING...');
   buildSetupFields();
+
+  // ── Restore active session if same day ──────────────────────────
+  try {
+    const saved = localStorage.getItem(SESSION_KEY);
+    if (saved) {
+      const s = JSON.parse(saved);
+      const today = new Date().toLocaleDateString('en-GB');
+      if (s.date === today && s.name) {
+        shiftInfo    = { name: s.name, date: s.date, startTime: s.startTime };
+        stock        = s.stock;
+        prices       = s.prices;
+        salesLog     = s.salesLog || [];
+        totalRevenue = s.totalRevenue || 0;
+        txCount      = s.txCount || 0;
+        setStatus('READY');
+        setTimeout(() => {
+          document.getElementById('hname').textContent = s.name;
+          showScreen('s-app');
+          renderGrid(PRODUCTS);
+          renderLog();
+          updateStats();
+          startClock();
+          showToast(`Session restored — welcome back ${s.name}!`);
+        }, 500);
+        return;
+      } else {
+        clearSession();
+      }
+    }
+  } catch(e) { clearSession(); }
 
   // Apply defaults immediately — fields are usable even if API never responds
   PRODUCTS.forEach(p => {
@@ -593,6 +638,8 @@ function startDay() {
   updateStats();
   startClock();
   btn.disabled = false; btn.textContent = 'START DAY';
+
+  saveSession();
 
   // Save prices to Sheet in background — app is already usable
   if (priceData.length > 0) {
@@ -814,6 +861,7 @@ async function confirmSell() {
   const list = search ? PRODUCTS.filter(x=>x.toLowerCase().includes(search)) : (activeCat==='All' ? PRODUCTS : (CATS[activeCat]||PRODUCTS));
   renderGrid(list); renderLog(); updateStats();
   showToast(`✓ ${q}× ${p} — ${rev > 0 ? rev.toLocaleString()+' RWF' : 'sold'}`);
+  saveSession();
 
   // Log sale — fire and forget, never blocks the UI
   setSyncStatus(true);
@@ -851,6 +899,7 @@ function confirmRestock() {
     renderGrid(activeCat==='All' ? PRODUCTS : (CATS[activeCat]||PRODUCTS));
     updateStats();
     showToast(`✓ Restock added for ${count} product${count>1?'s':''}`);
+    saveSession();
   } else {
     showToast('No quantities entered','warn');
   }
@@ -885,6 +934,7 @@ function undoSale(id) {
   renderGrid(activeCat==='All' ? PRODUCTS : (CATS[activeCat]||PRODUCTS));
   updateStats();
   showToast(`↩ Undid ${l.qty}× ${l.item}`);
+  saveSession();
 }
 
 // ── STATS ─────────────────────────────────────────────────────────
@@ -1002,6 +1052,7 @@ async function saveAndClose() {
     btn.textContent = '✓ SAVED!';
     btn.style.background = 'var(--accent2)';
     showToast('Day saved to Google Sheets!');
+    clearSession();
     setTimeout(() => location.reload(), 2000);
   } catch(e) {
     spinner.style.display = 'none';
