@@ -590,19 +590,16 @@ async function apiFetch(action) {
   }
 }
 
-// apiPost sends data as a POST body through the Worker — no URL length limit.
-// Requires the Worker to forward POST requests to GAS (see Worker code below).
 async function apiPost(data) {
-  const proxyUrl = PROXY + encodeURIComponent(API);
+  const payload = encodeURIComponent(JSON.stringify(data));
+  const target  = encodeURIComponent(API + '?payload=' + payload);
+  const proxyUrl = PROXY + target;
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       console.log('[API] apiPost', data.action, 'attempt', attempt);
-      const r = await fetchWithTimeout(proxyUrl, 20000, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(data)
-      });
-      const result = await r.json();
+      const r = await fetchWithTimeout(proxyUrl, 15000);
+      const text = await r.text();
+      const result = JSON.parse(text);
       if (result.ok) return result;
       throw new Error('result.ok false: ' + JSON.stringify(result));
     } catch(e) {
@@ -916,15 +913,23 @@ async function saveAndClose() {
   spinner.style.display = 'block';
 
   const now = new Date();
-  const stockArr = PRODUCTS.map(p => ({
+
+  // Only products with activity in the detailed stock array — keeps URL short
+  const stockArr = PRODUCTS
+    .filter(p => stock[p].sold > 0 || stock[p].restocked > 0)
+    .map(p => ({
+      product: p,
+      opening: stock[p].opening,
+      restocked: stock[p].restocked || 0,
+      sold: stock[p].sold,
+      remaining: stock[p].remaining,
+      unitPrice: prices[p] || 0
+    }));
+
+  // Slim closing stock for ALL products — used for tomorrow's opening stock auto-load
+  const closingStock = PRODUCTS.map(p => ({
     product: p,
-    opening: stock[p].opening,
-    restocked: stock[p].restocked || 0,
-    totalAvailable: stock[p].opening + (stock[p].restocked||0),
-    sold: stock[p].sold,
-    remaining: stock[p].remaining,
-    unitPrice: prices[p] || 0,
-    revenue: stock[p].sold * (prices[p]||0)
+    remaining: stock[p].remaining
   }));
 
   const salesArr = PRODUCTS.filter(p=>stock[p].sold>0).map(p=>({
@@ -944,6 +949,7 @@ async function saveAndClose() {
       totalUnits: salesArr.reduce((a,s)=>a+s.sold,0),
       totalRevenue,
       stock: stockArr,
+      closingStock,
       sales: salesArr
     });
 

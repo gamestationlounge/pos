@@ -215,7 +215,9 @@ function endDay(data) {
   closing.clearContents();
   closing.appendRow(['Product','Closing Stock','Date']);
   closing.getRange(1,1,1,3).setFontWeight('bold').setBackground('#7D3C98').setFontColor('#FFFFFF');
-  if (data.stock) data.stock.forEach(item => closing.appendRow([item.product,item.remaining,data.date]));
+  // closingStock is a slim all-products array; fall back to stock if not present
+  const stockForClosing = data.closingStock || data.stock;
+  if (stockForClosing) stockForClosing.forEach(item => closing.appendRow([item.product,item.remaining,data.date]));
 
   const daySheet = getOrCreateSheet(wb, data.date);
   daySheet.clearContents();
