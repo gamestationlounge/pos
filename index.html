@@ -913,8 +913,9 @@ async function saveAndClose() {
   spinner.style.display = 'block';
 
   const now = new Date();
+  const totalUnits = PRODUCTS.reduce((a,p)=>a+stock[p].sold,0);
 
-  // Only products with activity in the detailed stock array — keeps URL short
+  // Call 1 payload: summary + active products for dated daily sheet
   const stockArr = PRODUCTS
     .filter(p => stock[p].sold > 0 || stock[p].restocked > 0)
     .map(p => ({
@@ -925,48 +926,52 @@ async function saveAndClose() {
       remaining: stock[p].remaining,
       unitPrice: prices[p] || 0
     }));
-
-  // Slim closing stock for ALL products — used for tomorrow's opening stock auto-load
-  const closingStock = PRODUCTS.map(p => ({
-    product: p,
-    remaining: stock[p].remaining
-  }));
-
   const salesArr = PRODUCTS.filter(p=>stock[p].sold>0).map(p=>({
     product: p, sold: stock[p].sold
+  }));
+
+  // Call 2 payload: slim all-products array for Closing Stock sheet
+  const closingStockArr = PRODUCTS.map(p => ({
+    product: p,
+    remaining: stock[p].remaining
   }));
 
   const errDiv = document.getElementById('save-error');
   errDiv.style.display = 'none';
 
   try {
-    const res = await apiPost({
-      action: 'END_DAY',
+    // ── Call 1: summary + daily breakdown sheet ─────────────────────
+    const res1 = await apiPost({
+      action: 'END_DAY_SUMMARY',
       date: shiftInfo.date,
       bartender: shiftInfo.name,
       shiftStart: shiftInfo.startTime,
       shiftEnd: fmtT(now),
-      totalUnits: salesArr.reduce((a,s)=>a+s.sold,0),
+      totalUnits,
       totalRevenue,
-      stock: stockArr,
-      closingStock,
-      sales: salesArr
+      sales: salesArr,
+      stock: stockArr
     });
+    if (!res1.ok) throw new Error(res1.error || 'END_DAY_SUMMARY failed');
 
-    if (res.ok) {
-      spinner.style.display = 'none';
-      btn.textContent = '✓ SAVED!';
-      btn.style.background = 'var(--accent2)';
-      showToast('Day saved to Google Sheets!');
-      setTimeout(() => location.reload(), 2000);
-    } else {
-      throw new Error(res.error);
-    }
+    // ── Call 2: closing stock for all products ──────────────────────
+    const res2 = await apiPost({
+      action: 'SAVE_CLOSING_STOCK',
+      date: shiftInfo.date,
+      stock: closingStockArr
+    });
+    if (!res2.ok) throw new Error(res2.error || 'SAVE_CLOSING_STOCK failed');
+
+    spinner.style.display = 'none';
+    btn.textContent = '✓ SAVED!';
+    btn.style.background = 'var(--accent2)';
+    showToast('Day saved to Google Sheets!');
+    setTimeout(() => location.reload(), 2000);
   } catch(e) {
     spinner.style.display = 'none';
     btn.disabled = false; btn.textContent = '💾 SAVE & CLOSE';
     errDiv.style.display = 'block';
-    console.error('[SAVE] END_DAY failed:', e.message);
+    console.error('[SAVE] failed:', e.message);
   }
 }
 

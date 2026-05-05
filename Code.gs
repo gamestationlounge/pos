@@ -62,12 +62,14 @@ function doGet(e) {
 // Returns a plain object — used by both doPost and JSONP doGet
 function getResult(data) {
   const action = data.action;
-  if (action === 'LOG_SALE')          return logSale(data);
-  if (action === 'END_DAY')           return endDay(data);
-  if (action === 'GET_LAST_STOCK')    return getLastStock();
-  if (action === 'UPDATE_PRICES')     return updatePrices(data);
-  if (action === 'GET_PRICES')        return getPrices();
-  if (action === 'CHECK_STOCK_ALERT') return checkStockAlert(data);
+  if (action === 'LOG_SALE')            return logSale(data);
+  if (action === 'END_DAY')             return endDay(data);
+  if (action === 'END_DAY_SUMMARY')     return endDaySummary(data);
+  if (action === 'SAVE_CLOSING_STOCK')  return saveClosingStock(data);
+  if (action === 'GET_LAST_STOCK')      return getLastStock();
+  if (action === 'UPDATE_PRICES')       return updatePrices(data);
+  if (action === 'GET_PRICES')          return getPrices();
+  if (action === 'CHECK_STOCK_ALERT')   return checkStockAlert(data);
   return { ok: false, error: 'Unknown action' };
 }
 function respond(obj) {
@@ -238,6 +240,57 @@ function endDay(data) {
     daySheet.getRange(lastRow,1,1,8).setFontWeight('bold').setBackground('#D6EAF8');
   }
   return { ok: true, message: 'Day closed successfully' };
+}
+
+// ── 3b. END DAY SUMMARY (split call 1 — small payload) ───────────────
+function endDaySummary(data) {
+  const wb = SpreadsheetApp.openById(SHEET_ID);
+
+  // Daily Summary sheet
+  const summary = getOrCreateSheet(wb, 'Daily Summary');
+  if (summary.getLastRow() === 0) {
+    summary.appendRow(['Date','Bartender','Total Units Sold','Total Revenue (RWF)','Top Product','Shift Start','Shift End']);
+    summary.getRange(1,1,1,7).setFontWeight('bold').setBackground('#1E8449').setFontColor('#FFFFFF');
+    summary.setFrozenRows(1);
+    summary.setColumnWidths(1,7,160);
+  }
+  const top = data.sales && data.sales.length > 0
+    ? data.sales.reduce((a,b) => a.sold > b.sold ? a : b).product : '—';
+  summary.appendRow([data.date,data.bartender,data.totalUnits,data.totalRevenue,top,data.shiftStart,data.shiftEnd]);
+
+  // Dated daily breakdown sheet (uses active-products stock passed in data.stock)
+  if (data.stock && data.stock.length > 0) {
+    const daySheet = getOrCreateSheet(wb, data.date);
+    daySheet.clearContents();
+    daySheet.appendRow(['Product','Opening Stock','Restocked','Total Available','Sold','Unit Price (RWF)','Revenue (RWF)','Closing Stock']);
+    daySheet.getRange(1,1,1,8).setFontWeight('bold').setBackground('#2E86C1').setFontColor('#FFFFFF');
+    daySheet.setFrozenRows(1);
+    daySheet.setColumnWidths(1,8,150);
+    data.stock.forEach((item,i) => {
+      const bg = i%2===0 ? '#EBF5FB' : '#FFFFFF';
+      daySheet.appendRow([item.product,item.opening,item.restocked||0,
+        item.opening+(item.restocked||0),
+        item.sold,item.unitPrice||0,
+        item.sold*(item.unitPrice||0),item.remaining]);
+      daySheet.getRange(i+2,1,1,8).setBackground(bg);
+    });
+    const lastRow = data.stock.length + 2;
+    daySheet.appendRow(['TOTAL','','','',data.totalUnits,'',data.totalRevenue,'']);
+    daySheet.getRange(lastRow,1,1,8).setFontWeight('bold').setBackground('#D6EAF8');
+  }
+
+  return { ok: true };
+}
+
+// ── 3c. SAVE CLOSING STOCK (split call 2 — small payload) ────────────
+function saveClosingStock(data) {
+  const wb = SpreadsheetApp.openById(SHEET_ID);
+  const closing = getOrCreateSheet(wb, 'Closing Stock');
+  closing.clearContents();
+  closing.appendRow(['Product','Closing Stock','Date']);
+  closing.getRange(1,1,1,3).setFontWeight('bold').setBackground('#7D3C98').setFontColor('#FFFFFF');
+  if (data.stock) data.stock.forEach(item => closing.appendRow([item.product,item.remaining,data.date]));
+  return { ok: true };
 }
 
 // ── 4. GET LAST CLOSING STOCK ─────────────────────────────────────
