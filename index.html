@@ -436,15 +436,26 @@ async function init() {
     }
   });
 
-  try {
-    const [pricesRes, stockRes] = await Promise.all([
-      apiFetch('GET_PRICES'),
-      apiFetch('GET_LAST_STOCK')
-    ]);
-    console.log('[INIT] Promise.all resolved — pricesRes.ok:', pricesRes && pricesRes.ok, '| stockRes.ok:', stockRes && stockRes.ok);
+  // Run sequentially so a failure in one doesn't abort the other
+  let pricesRes = null, stockRes = null;
 
+  try {
+    pricesRes = await apiFetch('GET_PRICES');
+    console.log('[INIT] GET_PRICES ok:', pricesRes && pricesRes.ok);
+  } catch(e) {
+    console.warn('[INIT] GET_PRICES failed:', e.message);
+  }
+
+  try {
+    stockRes = await apiFetch('GET_LAST_STOCK');
+    console.log('[INIT] GET_LAST_STOCK ok:', stockRes && stockRes.ok);
+  } catch(e) {
+    console.warn('[INIT] GET_LAST_STOCK failed:', e.message);
+  }
+
+  try {
     // Override with saved prices from Sheet
-    if (pricesRes.ok && pricesRes.prices.length > 0) {
+    if (pricesRes && pricesRes.ok && pricesRes.prices && pricesRes.prices.length > 0) {
       pricesRes.prices.forEach(p => {
         prices[p.product] = p.price;
         const el = document.getElementById("pr_" + p.product.replace(/\W/g,"_"));
@@ -456,8 +467,8 @@ async function init() {
     }
 
     // Apply last closing stock
-    console.log('[STOCK] GET_LAST_STOCK response:', JSON.stringify(stockRes));
-    if (stockRes.ok && stockRes.stock.length > 0) {
+    console.log('[STOCK] stockRes:', JSON.stringify(stockRes));
+    if (stockRes && stockRes.ok && stockRes.stock && stockRes.stock.length > 0) {
       const dateStr = stockRes.stock[0]?.date;
       let filled = 0;
       stockRes.stock.forEach(s => {
