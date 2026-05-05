@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git commit --allow-empty -m ' *)",
+      "Bash(git commit *)",
+      "Bash(curl -s https://raw.githubusercontent.com/gamestationlounge/pos/master/index.html)",
+      "Bash(python -c ' *)",
+      "Bash(curl -s \"https://gamestationlounge.github.io/pos/index.html\")",
+      "Bash(git fetch *)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/gamestationlounge/pos/main/index.html\")",
+      "Bash(git ls-remote *)",
+      "Bash(curl -s \"https://api.allorigins.win/get?url=https%3A%2F%2Fscript.google.com%2Fmacros%2Fs%2FAKfycbxt5HEl8mQ6ttzgGnIsxoqPegrNxnSCyw6EK1OUKQ-MdZVB0hta63Wb1JUfK1BuwJ3p%2Fexec%3Faction%3DGET_LAST_STOCK\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); c=json.loads\\(d['contents']\\); print\\('ok:',c.get\\('ok'\\)\\); print\\('stock count:',len\\(c.get\\('stock',[]\\)\\)\\); print\\('first item:',c.get\\('stock',[None]\\)[0]\\)\")",
+      "Bash(curl -sv \"https://api.allorigins.win/get?url=https%3A%2F%2Fscript.google.com%2Fmacros%2Fs%2FAKfycbxt5HEl8mQ6ttzgGnIsxoqPegrNxnSCyw6EK1OUKQ-MdZVB0hta63Wb1JUfK1BuwJ3p%2Fexec%3Faction%3DGET_LAST_STOCK\")"
+    ]
+  }
+}
