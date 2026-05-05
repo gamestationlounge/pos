@@ -1014,7 +1014,7 @@ function renderGrid(list) {
     const pr = prices[p] || 0;
     const pct = s.opening > 0 ? s.remaining / (s.opening + s.restocked) : 1;
     const out = s.remaining === 0;
-    const low = !out && (s.remaining <= 3 || pct <= 0.2);
+    const low = !out && (s.remaining <= 10 || pct <= 0.2);
     const cls = out ? 'out' : low ? 'low' : '';
     const remCls = out ? 'r' : low ? 'a' : 'g';
     const card = document.createElement('div');
@@ -1212,7 +1212,7 @@ function undoSale(id) {
 // ── STATS ─────────────────────────────────────────────────────────
 function updateStats() {
   const tot  = Object.values(stock).reduce((a,s)=>a+s.sold,0);
-  const lw   = Object.values(stock).filter(s=>s.remaining>0&&(s.remaining<=3||(s.opening>0&&s.remaining/(s.opening+s.restocked)<=.2))).length;
+  const lw   = Object.values(stock).filter(s=>s.remaining>0&&(s.remaining<=10||(s.opening>0&&s.remaining/(s.opening+s.restocked)<=.2))).length;
   const cashRev = closedTabs.filter(t=>t.paymentMethod==='CASH').reduce((a,t)=>a+t.total,0) +
                   salesLog.filter(l=>l.paymentMethod==='CASH').reduce((a,l)=>a+l.revenue,0);
   const momoRev = closedTabs.filter(t=>t.paymentMethod==='MOMO').reduce((a,t)=>a+t.total,0) +

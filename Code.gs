@@ -6,11 +6,47 @@
 const SHEET_ID    = '14XuYMKu5fphq9w0ZqVANYUDQ3-hJvrTsLvYL_hqpO9E';
 const ALERT_EMAIL = 'gamestationlounge9@gmail.com';
 
+var OWNER_NAME  = 'KABWA';
+var OWNER_EMAIL = 'gamestationlounge9@gmail.com';
+
 // Items >= 10,000 RWF → alert at 2 remaining
 // Items <  10,000 RWF → alert at 5 remaining
 const HIGH_VALUE_THRESHOLD = 10000;
 const ALERT_LOW  = 5;
 const ALERT_HIGH = 2;
+
+function sendLowStockEmail(product, remaining, bartender) {
+  try {
+    MailApp.sendEmail({
+      to: OWNER_EMAIL,
+      subject: '⚠️ LOW STOCK: ' + product + ' (' + remaining + ' left) - Game Station Lounge',
+      htmlBody: '<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">' +
+        '<div style="background: #1a1a2e; padding: 20px; text-align: center;">' +
+        '<h1 style="color: #f59e0b; margin: 0;">GAME STATION LOUNGE</h1>' +
+        '<p style="color: #ffffff; margin: 5px 0;">Point of Sale System</p></div>' +
+        '<div style="background: #fee2e2; padding: 15px; text-align: center;">' +
+        '<h2 style="color: #dc2626; margin: 0;">⚠️ LOW STOCK ALERT</h2></div>' +
+        '<div style="background: #ffffff; padding: 30px;">' +
+        '<p>Dear <b>' + OWNER_NAME + '</b>,</p>' +
+        '<p>This is an automatic alert from your POS system.</p>' +
+        '<table style="width:100%; border-collapse: collapse;">' +
+        '<tr style="background: #f8fafc;"><td style="padding:10px; border:1px solid #e2e8f0;"><b>Product</b></td>' +
+        '<td style="padding:10px; border:1px solid #e2e8f0; color:#dc2626;">' + product + '</td></tr>' +
+        '<tr><td style="padding:10px; border:1px solid #e2e8f0;"><b>Remaining Stock</b></td>' +
+        '<td style="padding:10px; border:1px solid #e2e8f0; color:#dc2626; font-size:20px;"><b>' + remaining + ' units</b></td></tr>' +
+        '<tr style="background:#f8fafc;"><td style="padding:10px; border:1px solid #e2e8f0;"><b>Sold by</b></td>' +
+        '<td style="padding:10px; border:1px solid #e2e8f0;">' + bartender + '</td></tr>' +
+        '<tr><td style="padding:10px; border:1px solid #e2e8f0;"><b>Time</b></td>' +
+        '<td style="padding:10px; border:1px solid #e2e8f0;">' + new Date().toLocaleString() + '</td></tr></table>' +
+        '<div style="background:#fef3c7; padding:15px; margin-top:20px; border-radius:5px;">' +
+        '<p style="margin:0; color:#92400e;"><b>⚡ Please restock ' + product + ' as soon as possible!</b></p></div></div>' +
+        '<div style="background:#1a1a2e; padding:15px; text-align:center;">' +
+        '<p style="color:#9ca3af; margin:0; font-size:12px;">Game Station Lounge POS - Automatic Alert System</p></div></div>'
+    });
+  } catch(e) {
+    Logger.log('Email alert failed: ' + e);
+  }
+}
 
 // ── ALERT TRACKING (once per product per day) ─────────────────────
 function getAlertsSentToday() {
@@ -91,6 +127,9 @@ function logSale(data) {
   }
   sheet.appendRow([data.date,data.time,data.bartender,data.product,data.qty,data.unitPrice||0,data.revenue||0,data.remaining,data.paymentMethod||'CASH']);
   if (data.revenue > 0) sheet.getRange(sheet.getLastRow(),7).setBackground('#D5F5E3');
+  if (Number(data.remaining) <= 10) {
+    sendLowStockEmail(data.product, data.remaining, data.bartender || 'Bartender');
+  }
   return { ok: true };
 }
 
