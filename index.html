@@ -597,7 +597,7 @@ async function apiPost(data) {
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       console.log('[API] apiPost', data.action, 'attempt', attempt);
-      const r = await fetchWithTimeout(proxyUrl, 15000);
+      const r = await fetchWithTimeout(proxyUrl, 30000);
       const text = await r.text();
       const result = JSON.parse(text);
       if (result.ok) return result;
@@ -769,17 +769,10 @@ async function confirmSell() {
   renderGrid(list); renderLog(); updateStats();
   showToast(`✓ ${q}× ${p} — ${rev > 0 ? rev.toLocaleString()+' RWF' : 'sold'}`);
 
-  // Log to sheet + check stock alert in background
+  // Log sale to sheet in background
   setSyncStatus(true);
   try {
     await apiPost({ action:'LOG_SALE', ...entry, product: entry.item });
-    // Auto stock alert — fires email to KABWA Eric if stock is low
-    apiPost({
-      action: 'CHECK_STOCK_ALERT',
-      product: entry.item,
-      remaining: s.remaining,
-      unitPrice: pr
-    });
     setSyncStatus(false);
   } catch(e) {
     setSyncStatus(false, true);
