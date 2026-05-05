@@ -1,0 +1,25 @@
+{
+  "name": "Game Station Lounge POS",
+  "short_name": "GSL POS",
+  "description": "Point of Sale system for Game Station Lounge",
+  "start_url": "/pos/",
+  "scope": "/pos/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#f59e0b",
+  "background_color": "#0a0a0f",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%231a1a2e'/><text x='96' y='130' font-size='100' text-anchor='middle' font-family='Arial' fill='%23f59e0b'>🎮</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%231a1a2e'/><text x='256' y='350' font-size='280' text-anchor='middle' font-family='Arial' fill='%23f59e0b'>🎮</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
