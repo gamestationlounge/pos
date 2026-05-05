@@ -769,14 +769,11 @@ async function confirmSell() {
   renderGrid(list); renderLog(); updateStats();
   showToast(`✓ ${q}× ${p} — ${rev > 0 ? rev.toLocaleString()+' RWF' : 'sold'}`);
 
-  // Log sale to sheet in background
+  // Log sale — fire and forget, never blocks the UI
   setSyncStatus(true);
-  try {
-    await apiPost({ action:'LOG_SALE', ...entry, product: entry.item });
-    setSyncStatus(false);
-  } catch(e) {
-    setSyncStatus(false, true);
-  }
+  apiPost({ action:'LOG_SALE', ...entry, product: entry.item })
+    .then(() => setSyncStatus(false))
+    .catch(() => setSyncStatus(false, true));
 }
 
 // ── RESTOCK ───────────────────────────────────────────────────────
@@ -933,26 +930,26 @@ async function saveAndClose() {
   errDiv.style.display = 'none';
 
   try {
-    // ── Call 1: summary + daily breakdown sheet ─────────────────────
-    const res1 = await apiPost({
-      action: 'END_DAY_SUMMARY',
-      date: shiftInfo.date,
-      bartender: shiftInfo.name,
-      shiftStart: shiftInfo.startTime,
-      shiftEnd: fmtT(now),
-      totalUnits,
-      totalRevenue,
-      sales: salesArr,
-      stock: stockArr
-    });
+    // Both calls are independent — run in parallel
+    const [res1, res2] = await Promise.all([
+      apiPost({
+        action: 'END_DAY_SUMMARY',
+        date: shiftInfo.date,
+        bartender: shiftInfo.name,
+        shiftStart: shiftInfo.startTime,
+        shiftEnd: fmtT(now),
+        totalUnits,
+        totalRevenue,
+        sales: salesArr,
+        stock: stockArr
+      }),
+      apiPost({
+        action: 'SAVE_CLOSING_STOCK',
+        date: shiftInfo.date,
+        stock: closingStockArr
+      })
+    ]);
     if (!res1.ok) throw new Error(res1.error || 'END_DAY_SUMMARY failed');
-
-    // ── Call 2: closing stock for all products ──────────────────────
-    const res2 = await apiPost({
-      action: 'SAVE_CLOSING_STOCK',
-      date: shiftInfo.date,
-      stock: closingStockArr
-    });
     if (!res2.ok) throw new Error(res2.error || 'SAVE_CLOSING_STOCK failed');
 
     spinner.style.display = 'none';
