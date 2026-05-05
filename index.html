@@ -1622,37 +1622,48 @@ function printTabReceipt() {
   const tab = tabs[activeTabId]; if (!tab) return;
   const tot = tab.items.reduce((a,i)=>a+i.qty*i.unitPrice,0);
   const now = new Date();
-  const pay = tabPaymentMethod === 'CASH' ? 'CASH' : tabPaymentMethod === 'MOMO' ? 'MOMO (Mobile Money)' : '---';
+  // Read payment from state or fall back to selected DOM button
+  const pm = tabPaymentMethod ||
+    (document.querySelector('.pay-btn.sel') && document.querySelector('.pay-btn.sel').dataset.pay) ||
+    '';
+  const pay = pm === 'CASH' ? 'CASH' : pm === 'MOMO' ? 'MOMO' : '---';
 
   const itemsHtml = tab.items.map(i => {
-    const detail = i.qty + ' x ' + i.unitPrice.toLocaleString() + ' = ' + (i.qty*i.unitPrice).toLocaleString() + ' RWF';
+    const detail = '  ' + i.qty + ' x ' + i.unitPrice.toLocaleString() + ' = ' + (i.qty*i.unitPrice).toLocaleString() + ' RWF';
     return '<div class="iname">' + i.product + '</div>' +
            '<div class="idetail">' + detail + '</div>';
   }).join('');
 
-  const html = '<!DOCTYPE html>\n<html><head><meta charset="UTF-8"><title>Receipt</title>\n' +
+  const html = '<!DOCTYPE html>\n' +
+    '<html><head><meta charset="UTF-8"><title>Receipt</title>\n' +
     '<style>\n' +
+    '@page{size:48mm auto;margin:0}\n' +
     '*{margin:0;padding:0;box-sizing:border-box}\n' +
-    'body{font-family:"Courier New",Courier,monospace;font-size:12px;width:58mm;max-width:58mm;color:#000;background:#fff;padding:3mm 2mm}\n' +
-    '.c{text-align:center}.r{text-align:right}.b{font-weight:bold}.lg{font-size:14px}\n' +
-    '.dv{border-top:1px dashed #000;margin:4px 0}\n' +
-    '.row{display:flex;justify-content:space-between;margin:2px 0;font-size:11px}\n' +
-    '.iname{margin-top:5px;font-size:12px}\n' +
-    '.idetail{text-align:right;font-size:11px;margin-bottom:2px;color:#000}\n' +
-    '.tot{display:flex;justify-content:space-between;font-weight:bold;font-size:14px;margin:4px 0}\n' +
-    '.tail{height:24mm}\n' +
-    '@media print{body{width:58mm;margin:0;padding:2mm}.no-print{display:none!important}}\n' +
+    'body{font-family:"Courier New",Courier,monospace;font-size:13px;' +
+         'width:46mm;max-width:46mm;color:#000;background:#fff;' +
+         'padding:1mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}\n' +
+    '.c{text-align:center}.b{font-weight:bold}.lg{font-size:14px}\n' +
+    '.dv{border-top:1px dashed #000;margin:3px 0}\n' +
+    '.row{display:flex;justify-content:space-between;margin:1px 0;font-size:11px}\n' +
+    '.iname{margin-top:4px;font-size:12px;word-break:break-word}\n' +
+    '.idetail{font-size:11px;margin-bottom:2px}\n' +
+    '.tot{display:flex;justify-content:space-between;font-weight:bold;font-size:13px;margin:3px 0}\n' +
+    '.tail{height:20mm}\n' +
+    '@media print{' +
+      'body{width:46mm;margin:0;padding:1mm}' +
+      '.no-print{display:none!important}' +
+    '}\n' +
     '</style></head>\n<body>\n' +
     '<div class="c b lg">GAME STATION LOUNGE</div>\n' +
     '<div class="c">Tel: +250 796 706 380</div>\n' +
     '<div class="dv"></div>\n' +
     '<div class="row"><span>' + tab.name + '</span><span>' + tab.date + '</span></div>\n' +
-    '<div class="row"><span>Bartender: ' + tab.bartender + '</span><span>' + fmtT(now) + '</span></div>\n' +
+    '<div class="row"><span>' + tab.bartender + '</span><span>' + fmtT(now) + '</span></div>\n' +
     '<div class="dv"></div>\n' +
     itemsHtml + '\n' +
     '<div class="dv"></div>\n' +
     '<div class="tot"><span>TOTAL:</span><span>' + tot.toLocaleString() + ' RWF</span></div>\n' +
-    '<div>Payment: ' + pay + '</div>\n' +
+    '<div class="b">Payment: ' + pay + '</div>\n' +
     '<div class="dv"></div>\n' +
     '<div class="c">Thank you for visiting!</div>\n' +
     '<div class="c b">Game Station Lounge</div>\n' +
@@ -1660,7 +1671,7 @@ function printTabReceipt() {
     '<script>window.onload=function(){window.print();}<\/script>\n' +
     '</body></html>';
 
-  const w = window.open('', '_blank', 'width=420,height=650');
+  const w = window.open('', '_blank', 'width=300,height=600');
   if (w) { w.document.write(html); w.document.close(); }
 }
 
