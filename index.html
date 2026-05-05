@@ -423,11 +423,11 @@ let totalRevenue=0, syncing=false;
 
 // ── INIT ─────────────────────────────────────────────────────────
 async function init() {
-  console.log('[INIT] starting — build:d996745');
-  setStatus('CONNECTING TO GOOGLE SHEETS...');
+  console.log('[INIT] starting');
+  setStatus('LOADING...');
   buildSetupFields();
 
-  // Always apply defaults immediately so setup works even if API is unreachable
+  // Apply defaults immediately — fields are usable even if API never responds
   PRODUCTS.forEach(p => {
     if (DEFAULT_PRICES[p]) {
       prices[p] = DEFAULT_PRICES[p];
@@ -436,25 +436,17 @@ async function init() {
     }
   });
 
-  // Run sequentially so a failure in one doesn't abort the other
-  let pricesRes = null, stockRes = null;
+  // Show "Loading..." on both status badges while fetches run in background
+  document.getElementById("prices-status").textContent = "Loading...";
+  document.getElementById("stock-status").textContent = "Loading...";
 
-  try {
-    pricesRes = await apiFetch('GET_PRICES');
-    console.log('[INIT] GET_PRICES ok:', pricesRes && pricesRes.ok);
-  } catch(e) {
-    console.warn('[INIT] GET_PRICES failed:', e.message);
-  }
+  // Show setup screen immediately — don't block on network calls
+  setStatus('READY');
+  setTimeout(() => showScreen('s-setup'), 500);
 
+  // ── Prices (fills in after screen is already visible) ─────────────
   try {
-    stockRes = await apiFetch('GET_LAST_STOCK');
-    console.log('[INIT] GET_LAST_STOCK ok:', stockRes && stockRes.ok);
-  } catch(e) {
-    console.warn('[INIT] GET_LAST_STOCK failed:', e.message);
-  }
-
-  try {
-    // Override with saved prices from Sheet
+    const pricesRes = await apiFetch('GET_PRICES');
     if (pricesRes && pricesRes.ok && pricesRes.prices && pricesRes.prices.length > 0) {
       pricesRes.prices.forEach(p => {
         prices[p.product] = p.price;
@@ -465,9 +457,15 @@ async function init() {
     } else {
       document.getElementById("prices-status").textContent = "✓ Default prices loaded";
     }
+  } catch(e) {
+    console.warn('[INIT] GET_PRICES failed:', e.message);
+    document.getElementById("prices-status").textContent = "✓ Default prices loaded";
+  }
 
-    // Apply last closing stock
-    console.log('[STOCK] stockRes:', JSON.stringify(stockRes));
+  // ── Stock (fills in after screen is already visible) ──────────────
+  try {
+    const stockRes = await apiFetch('GET_LAST_STOCK');
+    console.log('[STOCK] response:', JSON.stringify(stockRes));
     if (stockRes && stockRes.ok && stockRes.stock && stockRes.stock.length > 0) {
       const dateStr = stockRes.stock[0]?.date;
       let filled = 0;
@@ -475,31 +473,22 @@ async function init() {
         const id = 'op_' + s.product.replace(/\W/g,'_');
         const el = document.getElementById(id);
         if (el) {
-          console.log('[STOCK]', id, '← remaining:', s.remaining, '(type:', typeof s.remaining + ')');
           el.value = s.remaining;
-          console.log('[STOCK]', id, 'el.value after set:', el.value);
           el.closest('.stock-row')?.classList.add('loaded');
           filled++;
         } else {
-          console.warn('[STOCK] No field found for product:', s.product, '| looked for id:', id);
+          console.warn('[STOCK] no field for:', s.product);
         }
       });
-      console.log('[STOCK] Filled', filled, 'of', stockRes.stock.length, 'products');
+      console.log('[STOCK] filled', filled, 'of', stockRes.stock.length);
       document.getElementById('stock-status').textContent =
         `✓ Auto-loaded from ${dateStr ? new Date(dateStr).toLocaleDateString('en-GB') : 'last session'}`;
     } else {
-      console.log('[STOCK] No closing stock data — sheet empty or first run');
       document.getElementById('stock-status').textContent = 'Enter opening stock below';
     }
-
-    setStatus('READY');
-    setTimeout(() => showScreen('s-setup'), 500);
   } catch(e) {
-    // API unreachable — defaults already applied, proceed silently
-    document.getElementById("prices-status").textContent = "✓ Default prices loaded";
+    console.warn('[INIT] GET_LAST_STOCK failed:', e.message);
     document.getElementById('stock-status').textContent = 'Enter opening stock below';
-    setStatus('READY');
-    setTimeout(() => showScreen('s-setup'), 500);
   }
 }
 
