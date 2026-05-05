@@ -464,7 +464,7 @@ async function init() {
 
   // ── Stock (fills in after screen is already visible) ──────────────
   try {
-    const stockRes = await apiFetch('GET_LAST_STOCK');
+    const stockRes = await apiFetch('GET_LAST_STOCK&t=' + Date.now());
     console.log('[STOCK] response:', JSON.stringify(stockRes));
     if (stockRes && stockRes.ok && stockRes.stock && stockRes.stock.length > 0) {
       const dateStr = stockRes.stock[0]?.date;
