@@ -1621,36 +1621,47 @@ async function confirmTabPayment() {
 function printTabReceipt() {
   const tab = tabs[activeTabId]; if (!tab) return;
   const tot = tab.items.reduce((a,i)=>a+i.qty*i.unitPrice,0);
-  const rows = tab.items.map(i => `<tr>
-    <td>${i.product}</td><td style="text-align:center">${i.qty}</td>
-    <td style="text-align:right">${i.unitPrice.toLocaleString()}</td>
-    <td style="text-align:right;font-weight:bold">${(i.qty*i.unitPrice).toLocaleString()}</td>
-    </tr>`).join('');
-  const pay = tabPaymentMethod ? (tabPaymentMethod==='CASH'?'💵 Cash':'📱 MoMo') : '';
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Receipt</title>
-  <style>body{font-family:Arial,sans-serif;max-width:300px;margin:0 auto;padding:15px;font-size:10pt;color:#111}
-  h1{color:#d97706;font-size:15pt;text-align:center;margin:0;letter-spacing:2px}
-  .sub{text-align:center;color:#888;font-size:8pt;margin:2px 0 12px}
-  .meta{font-size:8pt;color:#666;margin-bottom:10px;border-bottom:1px dashed #ccc;padding-bottom:8px}
-  table{width:100%;border-collapse:collapse}th{text-align:left;font-size:8pt;color:#666;padding:3px 2px;border-bottom:1px solid #eee}
-  td{padding:4px 2px;font-size:9pt;border-bottom:1px solid #f0f0f0}
-  .tot{font-size:13pt;font-weight:bold;text-align:right;margin-top:10px;padding-top:7px;border-top:2px solid #111;color:#16a34a}
-  .pay{text-align:center;margin-top:8px;font-size:8pt;color:#666}
-  .ty{text-align:center;margin-top:12px;color:#d97706;font-size:8pt;font-style:italic}
-  @media print{body{max-width:100%}}</style></head><body>
-  <h1>GAME STATION LOUNGE</h1><div class="sub">POINT OF SALE RECEIPT</div>
-  <div class="meta">Table: <b>${tab.name}</b><br>Bartender: ${tab.bartender}<br>
-  Opened: ${tab.openedAt} · ${tab.date}</div>
-  <table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
-  <tbody>${rows}</tbody></table>
-  <div class="tot">TOTAL: ${tot.toLocaleString()} RWF</div>
-  ${pay ? `<div class="pay">Payment: ${pay}</div>` : ''}
-  <div class="ty">Thank you for visiting Game Station Lounge!</div>
-  <script>window.onload=()=>window.print()<\/script></body></html>`;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([html],{type:'text/html'}));
-  a.download = `Receipt_${tab.name.replace(/\s/g,'_')}.html`;
-  a.click();
+  const now = new Date();
+  const pay = tabPaymentMethod === 'CASH' ? 'CASH' : tabPaymentMethod === 'MOMO' ? 'MOMO (Mobile Money)' : '---';
+
+  const itemsHtml = tab.items.map(i => {
+    const detail = i.qty + ' x ' + i.unitPrice.toLocaleString() + ' = ' + (i.qty*i.unitPrice).toLocaleString() + ' RWF';
+    return '<div class="iname">' + i.product + '</div>' +
+           '<div class="idetail">' + detail + '</div>';
+  }).join('');
+
+  const html = '<!DOCTYPE html>\n<html><head><meta charset="UTF-8"><title>Receipt</title>\n' +
+    '<style>\n' +
+    '*{margin:0;padding:0;box-sizing:border-box}\n' +
+    'body{font-family:"Courier New",Courier,monospace;font-size:12px;width:58mm;max-width:58mm;color:#000;background:#fff;padding:3mm 2mm}\n' +
+    '.c{text-align:center}.r{text-align:right}.b{font-weight:bold}.lg{font-size:14px}\n' +
+    '.dv{border-top:1px dashed #000;margin:4px 0}\n' +
+    '.row{display:flex;justify-content:space-between;margin:2px 0;font-size:11px}\n' +
+    '.iname{margin-top:5px;font-size:12px}\n' +
+    '.idetail{text-align:right;font-size:11px;margin-bottom:2px;color:#000}\n' +
+    '.tot{display:flex;justify-content:space-between;font-weight:bold;font-size:14px;margin:4px 0}\n' +
+    '.tail{height:24mm}\n' +
+    '@media print{body{width:58mm;margin:0;padding:2mm}.no-print{display:none!important}}\n' +
+    '</style></head>\n<body>\n' +
+    '<div class="c b lg">GAME STATION LOUNGE</div>\n' +
+    '<div class="c">Tel: +250 790 000 000</div>\n' +
+    '<div class="dv"></div>\n' +
+    '<div class="row"><span>' + tab.name + '</span><span>' + tab.date + '</span></div>\n' +
+    '<div class="row"><span>Bartender: ' + tab.bartender + '</span><span>' + fmtT(now) + '</span></div>\n' +
+    '<div class="dv"></div>\n' +
+    itemsHtml + '\n' +
+    '<div class="dv"></div>\n' +
+    '<div class="tot"><span>TOTAL:</span><span>' + tot.toLocaleString() + ' RWF</span></div>\n' +
+    '<div>Payment: ' + pay + '</div>\n' +
+    '<div class="dv"></div>\n' +
+    '<div class="c">Thank you for visiting!</div>\n' +
+    '<div class="c b">Game Station Lounge</div>\n' +
+    '<div class="tail"></div>\n' +
+    '<script>window.onload=function(){window.print();}<\/script>\n' +
+    '</body></html>';
+
+  const w = window.open('', '_blank', 'width=420,height=650');
+  if (w) { w.document.write(html); w.document.close(); }
 }
 
 // ── PIN ───────────────────────────────────────────────────────────
