@@ -359,6 +359,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.65
     <div class="ed-meta" id="ed-meta"></div>
     <div id="ed-body"></div>
     <div class="saving-spinner" id="saving-spinner">⏳ SAVING TO GOOGLE SHEETS...</div>
+    <div id="save-error" style="display:none;color:var(--danger);font-family:var(--mono);font-size:.72rem;text-align:center;padding:.4rem 0">
+      ⚠ Save failed — tap SAVE &amp; CLOSE to retry
+    </div>
     <div class="ed-btns">
       <button class="edbtn-back" onclick="closeEndDay()">Back</button>
       <button class="edbtn-pdf" onclick="downloadPDF()">📄 PDF</button>
@@ -556,11 +559,11 @@ function startDay() {
 // Worker code: https://github.com/gamestationlounge/pos (see README)
 const PROXY = 'https://gas-proxy.manzidelphin2.workers.dev/?url=';
 
-async function fetchWithTimeout(url, ms = 8000) {
+async function fetchWithTimeout(url, ms = 8000, options = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), ms);
   try {
-    const r = await fetch(url, { signal: controller.signal });
+    const r = await fetch(url, { ...options, signal: controller.signal });
     clearTimeout(timer);
     return r;
   } catch(e) {
@@ -576,7 +579,6 @@ async function apiFetch(action) {
     try {
       console.log('[API] apiFetch', action, 'attempt', attempt);
       const r = await fetchWithTimeout(proxyUrl);
-      // Worker returns raw GAS response (not wrapped like allorigins)
       const result = await r.json();
       if (result.ok) return result;
       throw new Error('result.ok false: ' + JSON.stringify(result));
@@ -588,14 +590,18 @@ async function apiFetch(action) {
   }
 }
 
+// apiPost sends data as a POST body through the Worker — no URL length limit.
+// Requires the Worker to forward POST requests to GAS (see Worker code below).
 async function apiPost(data) {
-  const target = encodeURIComponent(API + '?payload=' + encodeURIComponent(JSON.stringify(data)));
-  const proxyUrl = PROXY + target;
+  const proxyUrl = PROXY + encodeURIComponent(API);
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       console.log('[API] apiPost', data.action, 'attempt', attempt);
-      const r = await fetchWithTimeout(proxyUrl);
-      // Worker returns raw GAS response (not wrapped like allorigins)
+      const r = await fetchWithTimeout(proxyUrl, 20000, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(data)
+      });
       const result = await r.json();
       if (result.ok) return result;
       throw new Error('result.ok false: ' + JSON.stringify(result));
@@ -925,6 +931,9 @@ async function saveAndClose() {
     product: p, sold: stock[p].sold
   }));
 
+  const errDiv = document.getElementById('save-error');
+  errDiv.style.display = 'none';
+
   try {
     const res = await apiPost({
       action: 'END_DAY',
@@ -950,7 +959,8 @@ async function saveAndClose() {
   } catch(e) {
     spinner.style.display = 'none';
     btn.disabled = false; btn.textContent = '💾 SAVE & CLOSE';
-    showToast('Save failed — check WiFi','err');
+    errDiv.style.display = 'block';
+    console.error('[SAVE] END_DAY failed:', e.message);
   }
 }
 
