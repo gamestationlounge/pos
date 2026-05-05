@@ -551,9 +551,9 @@ async function startDay() {
 }
 
 // ── API ───────────────────────────────────────────────────────────
-// allorigins.win proxy — fetches GAS URL server-side and returns JSON,
-// bypassing the browser CORS/CSP restrictions on script.google.com.
-const PROXY = 'https://api.allorigins.win/get?url=';
+// Cloudflare Worker proxy — replace PROXY with your deployed worker URL.
+// Worker code: https://github.com/gamestationlounge/pos (see README)
+const PROXY = 'https://gas-proxy.YOURNAME.workers.dev/?url=';
 
 async function fetchWithTimeout(url, ms = 8000) {
   const controller = new AbortController();
@@ -575,8 +575,8 @@ async function apiFetch(action) {
     try {
       console.log('[API] apiFetch', action, 'attempt', attempt);
       const r = await fetchWithTimeout(proxyUrl);
-      const wrapper = await r.json();
-      const result = JSON.parse(wrapper.contents);
+      // Worker returns raw GAS response (not wrapped like allorigins)
+      const result = await r.json();
       if (result.ok) return result;
       throw new Error('result.ok false: ' + JSON.stringify(result));
     } catch(e) {
@@ -594,8 +594,8 @@ async function apiPost(data) {
     try {
       console.log('[API] apiPost', data.action, 'attempt', attempt);
       const r = await fetchWithTimeout(proxyUrl);
-      const wrapper = await r.json();
-      const result = JSON.parse(wrapper.contents);
+      // Worker returns raw GAS response (not wrapped like allorigins)
+      const result = await r.json();
       if (result.ok) return result;
       throw new Error('result.ok false: ' + JSON.stringify(result));
     } catch(e) {
