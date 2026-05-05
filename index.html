@@ -511,17 +511,17 @@ function buildSetupFields() {
 }
 
 // ── START DAY ─────────────────────────────────────────────────────
-async function startDay() {
+function startDay() {
   const name = document.getElementById('bname').value.trim();
   if (!name) { showToast('Enter your name!', 'warn'); return; }
 
   const btn = document.getElementById('btn-start');
-  btn.disabled = true; btn.textContent = 'STARTING...';
+  btn.disabled = true;
 
   const now = new Date();
   shiftInfo = { name, date: now.toLocaleDateString('en-GB'), startTime: fmtT(now) };
 
-  // Collect prices
+  // Collect prices from form
   const priceData = [];
   PRODUCTS.forEach(p => {
     const el = document.getElementById('pr_' + p.replace(/\W/g,'_'));
@@ -530,24 +530,25 @@ async function startDay() {
     if (price > 0) priceData.push({ product: p, price });
   });
 
-  // Collect opening stock
+  // Collect opening stock from form
   PRODUCTS.forEach(p => {
     const el = document.getElementById('op_' + p.replace(/\W/g,'_'));
     const qty = Math.max(0, parseInt(el?.value) || 0);
     stock[p] = { opening: qty, sold: 0, restocked: 0, remaining: qty };
   });
 
-  // Save prices to sheet
-  if (priceData.length > 0) {
-    try { await apiPost({ action: 'UPDATE_PRICES', prices: priceData }); } catch(e) {}
-  }
-
+  // Show app immediately — no waiting for API
   document.getElementById('hname').textContent = name;
   showScreen('s-app');
   renderGrid(PRODUCTS);
   updateStats();
   startClock();
   btn.disabled = false; btn.textContent = 'START DAY';
+
+  // Save prices to Sheet in background — app is already usable
+  if (priceData.length > 0) {
+    apiPost({ action: 'UPDATE_PRICES', prices: priceData }).catch(() => {});
+  }
 }
 
 // ── API ───────────────────────────────────────────────────────────
