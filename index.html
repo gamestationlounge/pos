@@ -555,20 +555,55 @@ async function startDay() {
 // bypassing the browser CORS/CSP restrictions on script.google.com.
 const PROXY = 'https://api.allorigins.win/get?url=';
 
+async function fetchWithTimeout(url, ms = 8000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    const r = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    return r;
+  } catch(e) {
+    clearTimeout(timer);
+    throw e;
+  }
+}
+
 async function apiFetch(action) {
   const target = encodeURIComponent(API + '?action=' + action);
-  console.log('[API] apiFetch →', action);
-  const r = await fetch(PROXY + target);
-  const wrapper = await r.json();
-  return JSON.parse(wrapper.contents);
+  const proxyUrl = PROXY + target;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      console.log('[API] apiFetch', action, 'attempt', attempt);
+      const r = await fetchWithTimeout(proxyUrl);
+      const wrapper = await r.json();
+      const result = JSON.parse(wrapper.contents);
+      if (result.ok) return result;
+      throw new Error('result.ok false: ' + JSON.stringify(result));
+    } catch(e) {
+      console.warn('[API] apiFetch', action, 'attempt', attempt, 'failed:', e.message);
+      if (attempt === 3) throw e;
+      await new Promise(r => setTimeout(r, 1000 * attempt));
+    }
+  }
 }
 
 async function apiPost(data) {
   const target = encodeURIComponent(API + '?payload=' + encodeURIComponent(JSON.stringify(data)));
-  console.log('[API] apiPost → action:', data.action);
-  const r = await fetch(PROXY + target);
-  const wrapper = await r.json();
-  return JSON.parse(wrapper.contents);
+  const proxyUrl = PROXY + target;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      console.log('[API] apiPost', data.action, 'attempt', attempt);
+      const r = await fetchWithTimeout(proxyUrl);
+      const wrapper = await r.json();
+      const result = JSON.parse(wrapper.contents);
+      if (result.ok) return result;
+      throw new Error('result.ok false: ' + JSON.stringify(result));
+    } catch(e) {
+      console.warn('[API] apiPost', data.action, 'attempt', attempt, 'failed:', e.message);
+      if (attempt === 3) throw e;
+      await new Promise(r => setTimeout(r, 1000 * attempt));
+    }
+  }
 }
 
 // ── CLOCK ─────────────────────────────────────────────────────────
