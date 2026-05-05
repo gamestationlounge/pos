@@ -1637,10 +1637,11 @@ function printTabReceipt() {
   const html = '<!DOCTYPE html>\n' +
     '<html><head><meta charset="UTF-8"><title>Receipt</title>\n' +
     '<style>\n' +
-    '@page{size:48mm auto;margin:0}\n' +
+    '@page{size:48mm 80mm;margin:0}\n' +
     '*{margin:0;padding:0;box-sizing:border-box;color:#000!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}\n' +
     'body{font-family:"Courier New",Courier,monospace;font-size:15px;font-weight:700!important;' +
-         'width:46mm;max-width:46mm;color:#000000!important;background:#fff;' +
+         'width:46mm;max-width:46mm;height:78mm;overflow:hidden;' +
+         'color:#000000!important;background:#fff;page-break-after:avoid;' +
          'padding:1mm;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}\n' +
     '.c{text-align:center}.b{font-weight:700!important}.lg{font-size:16px;font-weight:700!important}\n' +
     '.dv{border-top:1.5px solid #000;margin:3px 0}\n' +
@@ -1671,7 +1672,7 @@ function printTabReceipt() {
     '<script>window.onload=function(){window.print();}<\/script>\n' +
     '</body></html>';
 
-  const w = window.open('', '_blank', 'width=300,height=600');
+  const w = window.open('', '_blank', 'width=182,height=302');
   if (w) { w.document.write(html); w.document.close(); }
 }
 
