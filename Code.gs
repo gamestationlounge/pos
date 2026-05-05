@@ -246,7 +246,7 @@ function endDay(data) {
 function endDaySummary(data) {
   const wb = SpreadsheetApp.openById(SHEET_ID);
 
-  // Daily Summary sheet
+  // Daily Summary — single row append (always one row, no loop needed)
   const summary = getOrCreateSheet(wb, 'Daily Summary');
   if (summary.getLastRow() === 0) {
     summary.appendRow(['Date','Bartender','Total Units Sold','Total Revenue (RWF)','Top Product','Shift Start','Shift End']);
@@ -258,25 +258,34 @@ function endDaySummary(data) {
     ? data.sales.reduce((a,b) => a.sold > b.sold ? a : b).product : '—';
   summary.appendRow([data.date,data.bartender,data.totalUnits,data.totalRevenue,top,data.shiftStart,data.shiftEnd]);
 
-  // Dated daily breakdown sheet (uses active-products stock passed in data.stock)
+  // Dated daily breakdown — one setValues call instead of N appendRow calls
   if (data.stock && data.stock.length > 0) {
     const daySheet = getOrCreateSheet(wb, data.date);
     daySheet.clearContents();
-    daySheet.appendRow(['Product','Opening Stock','Restocked','Total Available','Sold','Unit Price (RWF)','Revenue (RWF)','Closing Stock']);
+
+    const dataRows = data.stock.map(item => [
+      item.product,
+      item.opening,
+      item.restocked || 0,
+      item.opening + (item.restocked || 0),
+      item.sold,
+      item.unitPrice || 0,
+      item.sold * (item.unitPrice || 0),
+      item.remaining
+    ]);
+    const totalRow = ['TOTAL','','','',data.totalUnits,'',data.totalRevenue,''];
+    const headers  = ['Product','Opening Stock','Restocked','Total Available','Sold','Unit Price (RWF)','Revenue (RWF)','Closing Stock'];
+
+    daySheet.getRange(1, 1, dataRows.length + 2, 8)
+      .setValues([headers, ...dataRows, totalRow]);
+
+    // All formatting in bulk — one call per style, not one per row
     daySheet.getRange(1,1,1,8).setFontWeight('bold').setBackground('#2E86C1').setFontColor('#FFFFFF');
     daySheet.setFrozenRows(1);
     daySheet.setColumnWidths(1,8,150);
-    data.stock.forEach((item,i) => {
-      const bg = i%2===0 ? '#EBF5FB' : '#FFFFFF';
-      daySheet.appendRow([item.product,item.opening,item.restocked||0,
-        item.opening+(item.restocked||0),
-        item.sold,item.unitPrice||0,
-        item.sold*(item.unitPrice||0),item.remaining]);
-      daySheet.getRange(i+2,1,1,8).setBackground(bg);
-    });
-    const lastRow = data.stock.length + 2;
-    daySheet.appendRow(['TOTAL','','','',data.totalUnits,'',data.totalRevenue,'']);
-    daySheet.getRange(lastRow,1,1,8).setFontWeight('bold').setBackground('#D6EAF8');
+    const bgGrid = dataRows.map((_,i) => Array(8).fill(i%2===0 ? '#EBF5FB' : '#FFFFFF'));
+    daySheet.getRange(2, 1, dataRows.length, 8).setBackgrounds(bgGrid);
+    daySheet.getRange(dataRows.length + 2, 1, 1, 8).setFontWeight('bold').setBackground('#D6EAF8');
   }
 
   return { ok: true };
@@ -287,9 +296,12 @@ function saveClosingStock(data) {
   const wb = SpreadsheetApp.openById(SHEET_ID);
   const closing = getOrCreateSheet(wb, 'Closing Stock');
   closing.clearContents();
-  closing.appendRow(['Product','Closing Stock','Date']);
+
+  const rows = data.stock ? data.stock.map(item => [item.product, item.remaining, data.date]) : [];
+  closing.getRange(1, 1, rows.length + 1, 3)
+    .setValues([['Product','Closing Stock','Date'], ...rows]);
   closing.getRange(1,1,1,3).setFontWeight('bold').setBackground('#7D3C98').setFontColor('#FFFFFF');
-  if (data.stock) data.stock.forEach(item => closing.appendRow([item.product,item.remaining,data.date]));
+
   return { ok: true };
 }
 
@@ -308,9 +320,10 @@ function updatePrices(data) {
   const wb    = SpreadsheetApp.openById(SHEET_ID);
   const sheet = getOrCreateSheet(wb, 'Prices');
   sheet.clearContents();
-  sheet.appendRow(['Product','Unit Price (RWF)']);
+  const rows = data.prices ? data.prices.map(p => [p.product, p.price]) : [];
+  sheet.getRange(1, 1, rows.length + 1, 2)
+    .setValues([['Product','Unit Price (RWF)'], ...rows]);
   sheet.getRange(1,1,1,2).setFontWeight('bold').setBackground('#F39C12').setFontColor('#FFFFFF');
-  data.prices.forEach(p => sheet.appendRow([p.product, p.price]));
   return { ok: true };
 }
 
