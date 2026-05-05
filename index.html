@@ -210,6 +210,24 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.65
 #s-loading>*{position:relative;z-index:1}
 .app-scroll{position:relative;z-index:1}
 
+/* ══════════ PAYMENT METHOD ══════════ */
+.stats-pay{grid-template-columns:repeat(2,1fr)}
+.stat-cash{border-color:rgba(16,185,129,.3)}
+.stat-momo{border-color:rgba(59,130,246,.3)}
+.qpay{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.85rem}
+.qpay-label{font-size:.65rem;font-family:var(--mono);color:var(--muted);letter-spacing:.08em;text-transform:uppercase;text-align:center;margin-bottom:.4rem}
+.qpay-btn{padding:.88rem .5rem;border-radius:10px;border:2px solid var(--border);background:var(--card);color:var(--muted);font-family:var(--font);font-weight:700;font-size:.9rem;cursor:pointer;transition:all .12s;letter-spacing:.04em;text-align:center;user-select:none}
+.qpay-btn:active{transform:scale(.95)}
+.qpay-btn.cash.sel{background:rgba(16,185,129,.15);border-color:var(--accent2);color:var(--accent2)}
+.qpay-btn.momo.sel{background:rgba(59,130,246,.15);border-color:var(--info);color:var(--info)}
+.bb-pay-group{display:flex;gap:.65rem;align-items:center}
+.bb-pay-item{display:flex;flex-direction:column;gap:.05rem}
+.bb-pay-label{font-size:.54rem;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.bb-pay-val{font-size:.82rem;font-weight:700;font-family:var(--mono);white-space:nowrap}
+.bb-cash-val{color:var(--accent2)}
+.bb-momo-val{color:var(--info)}
+.bb-total-val{color:var(--accent);font-size:.95rem}
+
 /* ══════════ PIN MODAL ══════════ */
 #pin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;display:none;align-items:center;justify-content:center;padding:1rem}
 #pin-overlay.open{display:flex}
@@ -295,6 +313,10 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.65
       <div class="stat"><div class="stat-label">Transactions</div><div class="stat-val vi" id="stx">0</div></div>
       <div class="stat"><div class="stat-label">Low Stock</div><div class="stat-val vr" id="slow">0</div></div>
     </div>
+    <div class="stats stats-pay">
+      <div class="stat stat-cash"><div class="stat-label">💵 Cash</div><div class="stat-val vg" id="scash" style="font-size:.9rem">0</div></div>
+      <div class="stat stat-momo"><div class="stat-label">📱 MoMo</div><div class="stat-val vi" id="smomo" style="font-size:.9rem">0</div></div>
+    </div>
 
     <div class="controls">
       <div class="search-box">
@@ -320,8 +342,20 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.65
 
   <div class="bbar">
     <div class="bb-left">
-      <div class="bb-label">Today's Revenue</div>
-      <div class="bb-revenue" id="bb-rev">0 RWF</div>
+      <div class="bb-pay-group">
+        <div class="bb-pay-item">
+          <div class="bb-pay-label">💵 Cash</div>
+          <div class="bb-pay-val bb-cash-val" id="bb-cash">0</div>
+        </div>
+        <div class="bb-pay-item">
+          <div class="bb-pay-label">📱 MoMo</div>
+          <div class="bb-pay-val bb-momo-val" id="bb-momo">0</div>
+        </div>
+        <div class="bb-pay-item">
+          <div class="bb-pay-label">Total RWF</div>
+          <div class="bb-pay-val bb-total-val" id="bb-rev">0</div>
+        </div>
+      </div>
     </div>
     <div class="bb-right">
       <button class="btn-restock" onclick="requirePin('restock')">+ RESTOCK</button>
@@ -353,6 +387,11 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.65
       <input type="number" id="qcustom" min="1" placeholder="—" oninput="onCQ(this.value)"/>
     </div>
     <div class="q-preview" id="qpreview"></div>
+    <div class="qpay-label">Payment Method</div>
+    <div class="qpay">
+      <button class="qpay-btn cash" data-pay="CASH" onclick="setPayment('CASH')">💵 CASH</button>
+      <button class="qpay-btn momo" data-pay="MOMO" onclick="setPayment('MOMO')">📱 MOMO</button>
+    </div>
     <button class="qconfirm" id="qcbtn" disabled onclick="confirmSell()">SELECT QUANTITY</button>
     <button class="qcancel" onclick="closeQty()">Cancel</button>
   </div>
@@ -467,7 +506,7 @@ const CATS = {
 };
 
 let stock={}, prices={}, salesLog=[], txCount=0, shiftInfo={};
-let selProd=null, selQty=0, activeCat='All', search='';
+let selProd=null, selQty=0, selPayment=null, activeCat='All', search='';
 let totalRevenue=0, syncing=false;
 
 const SESSION_KEY = 'gsl_session';
@@ -787,7 +826,7 @@ function renderGrid(list) {
 
 // ── QTY MODAL ────────────────────────────────────────────────────
 function openQty(p) {
-  selProd = p; selQty = 0;
+  selProd = p; selQty = 0; selPayment = null;
   document.getElementById('qname').textContent = p;
   document.getElementById('qstock').textContent = stock[p].remaining;
   const pr = prices[p] || 0;
@@ -795,11 +834,16 @@ function openQty(p) {
   document.getElementById('qcustom').value = '';
   document.getElementById('qpreview').textContent = '';
   document.querySelectorAll('.qbtn').forEach(b=>b.classList.remove('sel'));
+  document.querySelectorAll('.qpay-btn').forEach(b=>b.classList.remove('sel'));
   const btn = document.getElementById('qcbtn');
   btn.disabled = true; btn.textContent = 'SELECT QUANTITY';
   document.getElementById('qty-overlay').classList.add('open');
 }
-function closeQty(){ document.getElementById('qty-overlay').classList.remove('open'); selProd=null; selQty=0; }
+function closeQty(){
+  document.getElementById('qty-overlay').classList.remove('open');
+  selProd=null; selQty=0; selPayment=null;
+  document.querySelectorAll('.qpay-btn').forEach(b=>b.classList.remove('sel'));
+}
 
 function setQ(n) {
   const s = stock[selProd];
@@ -816,13 +860,23 @@ function onCQ(val) {
   if (n > stock[selProd].remaining) { showToast(`Only ${stock[selProd].remaining} in stock!`,'warn'); selQty=0; updQBtn(); return; }
   selQty = n; updQBtn();
 }
+function setPayment(method) {
+  selPayment = method;
+  document.querySelectorAll('.qpay-btn').forEach(b=>b.classList.toggle('sel', b.dataset.pay===method));
+  updQBtn();
+}
+
 function updQBtn() {
   const btn = document.getElementById('qcbtn');
   const prev = document.getElementById('qpreview');
-  if (selQty > 0) {
+  const rev = selQty > 0 ? (prices[selProd]||0)*selQty : 0;
+  if (selQty > 0 && selPayment) {
     btn.disabled = false;
-    btn.textContent = `SELL  ${selQty} ×  ${selProd}`;
-    const rev = (prices[selProd] || 0) * selQty;
+    btn.textContent = `SELL  ${selQty} ×  ${selProd}  ${selPayment==='CASH'?'💵':'📱'}`;
+    prev.textContent = rev > 0 ? `Revenue: ${rev.toLocaleString()} RWF` : '';
+  } else if (selQty > 0) {
+    btn.disabled = true;
+    btn.textContent = 'SELECT PAYMENT METHOD';
     prev.textContent = rev > 0 ? `Revenue: ${rev.toLocaleString()} RWF` : '';
   } else {
     btn.disabled = true;
@@ -851,6 +905,7 @@ async function confirmSell() {
     remaining: s.remaining,
     unitPrice: pr, revenue: rev,
     bartender: shiftInfo.name,
+    paymentMethod: selPayment || 'CASH',
     id: txCount
   };
   salesLog.unshift(entry);
@@ -940,12 +995,18 @@ function undoSale(id) {
 // ── STATS ─────────────────────────────────────────────────────────
 function updateStats() {
   const tot = Object.values(stock).reduce((a,s)=>a+s.sold,0);
-  const lw = Object.values(stock).filter(s=>s.remaining>0&&(s.remaining<=3||(s.opening>0&&s.remaining/(s.opening+s.restocked)<=.2))).length;
-  document.getElementById('ss').textContent = tot;
-  document.getElementById('srev').textContent = totalRevenue.toLocaleString();
-  document.getElementById('stx').textContent = txCount;
-  document.getElementById('slow').textContent = lw;
-  document.getElementById('bb-rev').textContent = totalRevenue.toLocaleString() + ' RWF';
+  const lw  = Object.values(stock).filter(s=>s.remaining>0&&(s.remaining<=3||(s.opening>0&&s.remaining/(s.opening+s.restocked)<=.2))).length;
+  const cashRev = salesLog.filter(l=>l.paymentMethod==='CASH').reduce((a,l)=>a+l.revenue,0);
+  const momoRev = salesLog.filter(l=>l.paymentMethod==='MOMO').reduce((a,l)=>a+l.revenue,0);
+  document.getElementById('ss').textContent   = tot;
+  document.getElementById('srev').textContent  = totalRevenue.toLocaleString();
+  document.getElementById('stx').textContent   = txCount;
+  document.getElementById('slow').textContent  = lw;
+  document.getElementById('scash').textContent = cashRev.toLocaleString();
+  document.getElementById('smomo').textContent = momoRev.toLocaleString();
+  document.getElementById('bb-rev').textContent  = totalRevenue.toLocaleString();
+  document.getElementById('bb-cash').textContent = cashRev.toLocaleString();
+  document.getElementById('bb-momo').textContent = momoRev.toLocaleString();
 }
 
 // ── SYNC STATUS ───────────────────────────────────────────────────
@@ -982,8 +1043,15 @@ function openEndDay() {
     html += '</div>';
 
     const totalUnits = sold.reduce((a,p)=>a+stock[p].sold, 0);
+    const cashRev = salesLog.filter(l=>l.paymentMethod==='CASH').reduce((a,l)=>a+l.revenue,0);
+    const momoRev = salesLog.filter(l=>l.paymentMethod==='MOMO').reduce((a,l)=>a+l.revenue,0);
     html += `<div class="etotal"><span>TOTAL REVENUE</span><span>${totalRevenue.toLocaleString()} RWF</span></div>`;
     html += `<div style="margin-top:.3rem;text-align:right;font-family:var(--mono);font-size:.72rem;color:var(--muted)">${totalUnits} total units sold</div>`;
+    html += '<div class="ed-section">Payment Breakdown</div>';
+    html += '<div style="background:var(--card);border-radius:8px;padding:.3rem .5rem">';
+    html += `<div class="erow"><span class="en">💵 Cash</span><span class="ev" style="color:var(--accent2)">${cashRev.toLocaleString()} RWF</span></div>`;
+    html += `<div class="erow"><span class="en">📱 MoMo</span><span class="ev" style="color:var(--info)">${momoRev.toLocaleString()} RWF</span></div>`;
+    html += '</div>';
   }
 
   document.getElementById('ed-body').innerHTML = html;
@@ -1082,6 +1150,9 @@ function downloadPDF() {
     </tr>`;
   }).join('');
 
+  const cashRev = salesLog.filter(l=>l.paymentMethod==='CASH').reduce((a,l)=>a+l.revenue,0);
+  const momoRev = salesLog.filter(l=>l.paymentMethod==='MOMO').reduce((a,l)=>a+l.revenue,0);
+
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>GSL Report – ${shiftInfo.date}</title>
   <style>
@@ -1093,9 +1164,11 @@ function downloadPDF() {
     td{padding:6px 8px;border-bottom:1px solid #e5e7eb;font-size:9pt}
     tr:nth-child(even) td{background:#f8fafc}
     .total-row td{font-weight:bold;background:#fef3c7;border-top:2px solid #d97706}
-    .revenue-box{margin-top:20px;background:#f0fdf4;border:2px solid #16a34a;border-radius:8px;padding:16px;text-align:right}
-    .revenue-box .amount{font-size:24pt;font-weight:bold;color:#16a34a}
-    .revenue-box .label{color:#666;font-size:9pt}
+    .pay-row{display:flex;justify-content:space-between;margin-bottom:8px;font-size:10pt}
+    .revenue-box{margin-top:20px;background:#f0fdf4;border:2px solid #16a34a;border-radius:8px;padding:16px}
+    .revenue-box .amount{font-size:24pt;font-weight:bold;color:#16a34a;text-align:right}
+    .revenue-box .label{color:#666;font-size:9pt;text-align:right}
+    .rev-divider{border-top:1px solid #bbf7d0;margin:10px 0}
     @media print{body{padding:1cm}}
   </style></head><body>
   <h1>GAME STATION LOUNGE</h1>
@@ -1116,6 +1189,9 @@ function downloadPDF() {
     </tbody>
   </table>
   <div class="revenue-box">
+    <div class="pay-row"><span style="color:#666">💵 Cash</span><strong style="color:#16a34a">${cashRev.toLocaleString()} RWF</strong></div>
+    <div class="pay-row"><span style="color:#666">📱 MoMo</span><strong style="color:#1d4ed8">${momoRev.toLocaleString()} RWF</strong></div>
+    <div class="rev-divider"></div>
     <div class="label">TOTAL REVENUE TODAY</div>
     <div class="amount">${totalRevenue.toLocaleString()} RWF</div>
   </div>

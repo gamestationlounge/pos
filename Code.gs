@@ -83,12 +83,12 @@ function logSale(data) {
   const wb    = SpreadsheetApp.openById(SHEET_ID);
   const sheet = getOrCreateSheet(wb, 'Sales Log');
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(['Date','Time','Bartender','Product','Qty Sold','Unit Price (RWF)','Revenue (RWF)','Remaining Stock']);
-    sheet.getRange(1,1,1,8).setFontWeight('bold').setBackground('#1A5276').setFontColor('#FFFFFF');
+    sheet.appendRow(['Date','Time','Bartender','Product','Qty Sold','Unit Price (RWF)','Revenue (RWF)','Remaining Stock','Payment']);
+    sheet.getRange(1,1,1,9).setFontWeight('bold').setBackground('#1A5276').setFontColor('#FFFFFF');
     sheet.setFrozenRows(1);
-    sheet.setColumnWidths(1,8,150);
+    sheet.setColumnWidths(1,9,150);
   }
-  sheet.appendRow([data.date,data.time,data.bartender,data.product,data.qty,data.unitPrice||0,data.revenue||0,data.remaining]);
+  sheet.appendRow([data.date,data.time,data.bartender,data.product,data.qty,data.unitPrice||0,data.revenue||0,data.remaining,data.paymentMethod||'CASH']);
   if (data.revenue > 0) sheet.getRange(sheet.getLastRow(),7).setBackground('#D5F5E3');
   return { ok: true };
 }
