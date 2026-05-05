@@ -210,6 +210,77 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.65
 #s-loading>*{position:relative;z-index:1}
 .app-scroll{position:relative;z-index:1}
 
+/* ══════════ TABLES SCREEN ══════════ */
+#s-tables{background:var(--bg)}
+.tables-scroll{padding:.8rem .8rem 6rem;overflow-y:auto;height:calc(100vh - 56px)}
+.tables-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.8rem}
+.tables-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem}
+.tables-header h3{font-size:.65rem;font-family:var(--mono);color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.tables-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.8rem}
+@media(min-width:480px){.tables-grid{grid-template-columns:repeat(4,1fr)}}
+.tcard{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:.72rem .6rem .6rem;cursor:pointer;transition:all .12s;min-height:80px;display:flex;flex-direction:column;gap:.18rem;position:relative;user-select:none}
+.tcard:active{transform:scale(.93)}
+.tcard.tab-open{border-color:var(--accent);background:rgba(245,158,11,.07)}
+.tcard-name{font-size:.76rem;font-weight:700;letter-spacing:.03em;color:var(--text)}
+.tcard-status{font-size:.58rem;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.tcard-status.empty{color:var(--muted)}.tcard-status.open{color:var(--accent)}
+.tcard-items{font-family:var(--mono);font-size:.58rem;color:var(--muted)}
+.tcard-total{font-family:var(--mono);font-size:.82rem;font-weight:700;color:var(--accent2);margin-top:auto;padding-top:.25rem}
+.btn-new-table{width:100%;padding:.7rem;background:var(--card);border:1.5px dashed var(--border);color:var(--muted);font-family:var(--font);font-weight:700;font-size:.78rem;border-radius:10px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase}
+.btn-new-table:active{border-color:var(--accent);color:var(--accent)}
+
+/* ══════════ TAB BAR (inside #s-app) ══════════ */
+#tab-bar{background:rgba(245,158,11,.07);border-bottom:1px solid rgba(245,158,11,.18);padding:.4rem 1rem;display:none;align-items:center;justify-content:space-between;position:sticky;top:56px;z-index:30}
+#tab-bar.show{display:flex}
+.tab-bar-left{display:flex;align-items:center;gap:.5rem}
+.btn-back-tables{background:none;border:none;color:var(--accent);font-size:1rem;cursor:pointer;padding:.1rem .3rem;line-height:1}
+.tab-bar-name{font-size:.82rem;font-weight:700;color:var(--accent);letter-spacing:.03em}
+.tab-bar-meta{font-family:var(--mono);font-size:.58rem;color:var(--muted)}
+.tab-bar-total{font-family:var(--mono);font-size:.88rem;font-weight:700;color:var(--accent2)}
+.btn-view-order{background:var(--accent);color:#000;border:none;font-family:var(--font);font-size:.68rem;font-weight:700;padding:.3rem .65rem;border-radius:6px;cursor:pointer;letter-spacing:.03em}
+
+/* ══════════ ORDER PANEL ══════════ */
+#order-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:250;display:none;align-items:flex-end;justify-content:center}
+#order-overlay.open{display:flex}
+.osheet{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:16px 16px 0 0;padding:1.2rem 1rem 2rem;width:100%;max-width:480px;max-height:82vh;overflow-y:auto}
+.osheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem}
+.osheet-head h3{font-size:1rem;font-weight:700;color:var(--accent);letter-spacing:.04em}
+.osheet-head span{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+.oitem{display:flex;align-items:center;gap:.45rem;padding:.42rem .3rem;border-bottom:1px solid var(--border)}
+.oitem:last-child{border-bottom:none}
+.oitem-name{flex:1;font-size:.82rem;font-weight:600}
+.oitem-qty{font-family:var(--mono);font-size:.72rem;color:var(--muted);min-width:26px;text-align:center}
+.oitem-sub{font-family:var(--mono);font-size:.72rem;color:var(--accent);min-width:70px;text-align:right}
+.oitem-del{background:none;border:1px solid var(--border);color:var(--muted);border-radius:4px;padding:.1rem .3rem;font-size:.58rem;cursor:pointer;flex-shrink:0}
+.oitem-del:active{background:var(--danger);color:#fff;border-color:var(--danger)}
+.o-total{display:flex;justify-content:space-between;font-family:var(--mono);font-weight:700;font-size:.95rem;color:var(--accent2);padding:.65rem .3rem 0;border-top:2px solid var(--accent2);margin-top:.35rem}
+.obtn-pay{width:100%;padding:.88rem;background:var(--accent);color:#000;font-family:var(--font);font-weight:700;font-size:1rem;letter-spacing:.06em;text-transform:uppercase;border:none;border-radius:11px;cursor:pointer;margin-top:.75rem}
+.obtn-pay:active{opacity:.85}
+.obtn-cancel-tab{width:100%;padding:.5rem;background:transparent;color:var(--danger);font-family:var(--font);font-size:.75rem;border:none;cursor:pointer;margin-top:.25rem}
+
+/* ══════════ PAYMENT SCREEN ══════════ */
+#s-payment{background:var(--bg)}
+.payment-scroll{padding:.9rem .9rem 5rem;overflow-y:auto;height:100vh}
+.receipt-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.1rem;margin-bottom:.7rem}
+.receipt-hdr{text-align:center;padding-bottom:.75rem;border-bottom:1px solid var(--border);margin-bottom:.75rem}
+.receipt-hdr h2{font-size:.95rem;font-weight:700;letter-spacing:.14em;color:var(--accent)}
+.receipt-hdr p{font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-top:.2rem}
+.receipt-meta{font-family:var(--mono);font-size:.66rem;color:var(--muted);line-height:1.7;margin-bottom:.75rem}
+.r-row{display:flex;gap:.4rem;padding:.28rem 0;border-bottom:1px solid rgba(31,41,55,.35);font-size:.8rem}
+.r-row:last-child{border-bottom:none}
+.r-name{flex:1}.r-qty{font-family:var(--mono);color:var(--muted);min-width:28px;text-align:center}
+.r-price{font-family:var(--mono);color:var(--accent);min-width:76px;text-align:right}
+.r-total{display:flex;justify-content:space-between;font-family:var(--mono);font-weight:700;font-size:.95rem;color:var(--accent2);padding:.6rem 0 0;border-top:2px solid var(--accent2);margin-top:.35rem}
+.pay-btns{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-bottom:.75rem}
+.pay-btn{padding:.9rem .4rem;border-radius:11px;border:2px solid var(--border);background:var(--card);color:var(--muted);font-family:var(--font);font-weight:700;font-size:.92rem;cursor:pointer;transition:all .12s;text-align:center;letter-spacing:.04em}
+.pay-btn:active{transform:scale(.95)}
+.pay-btn.cash.sel{background:rgba(16,185,129,.15);border-color:var(--accent2);color:var(--accent2)}
+.pay-btn.momo.sel{background:rgba(59,130,246,.15);border-color:var(--info);color:var(--info)}
+.btn-confirm-pay{width:100%;padding:.92rem;background:var(--accent2);color:#000;font-family:var(--font);font-weight:700;font-size:1rem;letter-spacing:.06em;text-transform:uppercase;border:none;border-radius:11px;cursor:pointer;margin-bottom:.45rem}
+.btn-confirm-pay:disabled{background:var(--dim);color:var(--muted);cursor:not-allowed}
+.btn-print-receipt{width:100%;padding:.6rem;background:var(--card);border:1px solid var(--border);color:var(--text);font-family:var(--font);font-weight:700;font-size:.8rem;border-radius:10px;cursor:pointer;margin-bottom:.45rem}
+.btn-back-tab{width:100%;padding:.45rem;background:transparent;color:var(--muted);font-family:var(--font);font-size:.75rem;border:none;cursor:pointer}
+
 /* ══════════ PAYMENT METHOD ══════════ */
 .stats-pay{grid-template-columns:repeat(2,1fr)}
 .stat-cash{border-color:rgba(16,185,129,.3)}
@@ -306,6 +377,20 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.65
     </div>
   </header>
 
+  <div id="tab-bar">
+    <div class="tab-bar-left">
+      <button class="btn-back-tables" onclick="backToTables()" title="Back to tables">←</button>
+      <div>
+        <div class="tab-bar-name" id="tab-bar-name">Table 1</div>
+        <div class="tab-bar-meta" id="tab-bar-meta">0 items</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <div class="tab-bar-total" id="tab-bar-total">0 RWF</div>
+      <button class="btn-view-order" onclick="openOrderPanel()">View Order</button>
+    </div>
+  </div>
+
   <div class="app-scroll">
     <div class="stats">
       <div class="stat"><div class="stat-label">Units Sold</div><div class="stat-val va" id="ss">0</div></div>
@@ -361,6 +446,84 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.65
       <button class="btn-restock" onclick="requirePin('restock')">+ RESTOCK</button>
       <button class="btn-endday" onclick="requirePin('endday')">END DAY</button>
     </div>
+  </div>
+</div>
+
+<!-- ══ TABLES SCREEN ══ -->
+<div class="screen" id="s-tables">
+  <header>
+    <div class="logo-small"><div><h2>GAME STATION</h2><p>LOUNGE POS</p></div></div>
+    <div class="hdr-right">
+      <div class="hbadge">🧑 <b id="ths-name">—</b></div>
+      <div class="hbadge"><span class="sync-dot" id="ths-dot"></span> <b id="ths-lbl" style="color:var(--accent2)">LIVE</b></div>
+      <div id="ths-clock"></div>
+    </div>
+  </header>
+  <div class="tables-scroll">
+    <div class="tables-stats">
+      <div class="stat"><div class="stat-label">Revenue</div><div class="stat-val vg" id="ts-rev" style="font-size:.82rem">0</div></div>
+      <div class="stat"><div class="stat-label">Open Tabs</div><div class="stat-val va" id="ts-open">0</div></div>
+      <div class="stat"><div class="stat-label">Closed</div><div class="stat-val vi" id="ts-closed">0</div></div>
+    </div>
+    <div class="stats stats-pay" style="margin-bottom:.8rem">
+      <div class="stat stat-cash"><div class="stat-label">💵 Cash</div><div class="stat-val vg" id="ts-cash" style="font-size:.82rem">0</div></div>
+      <div class="stat stat-momo"><div class="stat-label">📱 MoMo</div><div class="stat-val vi" id="ts-momo" style="font-size:.82rem">0</div></div>
+    </div>
+    <div class="tables-header">
+      <h3>Tables &amp; Bar</h3>
+      <button class="btn-restock" style="font-size:.68rem;padding:.28rem .6rem" onclick="openCustomTableModal()">+ Custom</button>
+    </div>
+    <div class="tables-grid" id="tables-grid"></div>
+  </div>
+  <div class="bbar">
+    <div class="bb-left">
+      <div class="bb-pay-group">
+        <div class="bb-pay-item"><div class="bb-pay-label">Total RWF</div><div class="bb-pay-val bb-total-val" id="ts-total">0</div></div>
+      </div>
+    </div>
+    <div class="bb-right">
+      <button class="btn-restock" onclick="requirePin('restock')">+ RESTOCK</button>
+      <button class="btn-endday" onclick="requirePin('endday')">END DAY</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ORDER PANEL ══ -->
+<div id="order-overlay" onclick="if(event.target===this)closeOrderPanel()">
+  <div class="osheet">
+    <div class="osheet-head">
+      <h3 id="order-tname">Table 1</h3>
+      <span id="order-count">0 items</span>
+    </div>
+    <div id="order-items-list"></div>
+    <div class="o-total"><span>TOTAL</span><span id="order-grand">0 RWF</span></div>
+    <button class="obtn-pay" onclick="openPaymentScreen()">CLOSE TAB &amp; PAY</button>
+    <button class="obtn-cancel-tab" onclick="cancelActiveTab()">✕ Cancel Tab (undo all stock)</button>
+  </div>
+</div>
+
+<!-- ══ PAYMENT SCREEN ══ -->
+<div class="screen" id="s-payment">
+  <div class="payment-scroll">
+    <div class="receipt-card">
+      <div class="receipt-hdr">
+        <h2>GAME STATION LOUNGE</h2>
+        <p>TAB RECEIPT</p>
+      </div>
+      <div class="receipt-meta" id="pay-meta"></div>
+      <div id="pay-items"></div>
+      <div class="r-total"><span>TOTAL</span><span id="pay-total">0 RWF</span></div>
+    </div>
+    <div class="scard" style="max-width:100%;margin-bottom:.7rem">
+      <div class="scard-title">Payment Method</div>
+      <div class="pay-btns">
+        <button class="pay-btn cash" data-pay="CASH" onclick="selectTabPayment('CASH')">💵 CASH</button>
+        <button class="pay-btn momo" data-pay="MOMO" onclick="selectTabPayment('MOMO')">📱 MOMO</button>
+      </div>
+    </div>
+    <button class="btn-print-receipt" onclick="printTabReceipt()">🖨️ PRINT RECEIPT</button>
+    <button class="btn-confirm-pay" id="confirm-pay-btn" disabled onclick="confirmTabPayment()">CONFIRM PAYMENT</button>
+    <button class="btn-back-tab" onclick="backToTabFromPayment()">← Back to Tab</button>
   </div>
 </div>
 
@@ -505,9 +668,17 @@ const CATS = {
   Soft:["Energy","Fanta","Amazi","Panachi","Task","Red Bull"],
 };
 
+// Table definitions
+const TABLES = [
+  ...Array.from({length:10}, (_,i) => ({id:`tbl_${i+1}`,  name:`Table ${i+1}`})),
+  ...Array.from({length:3},  (_,i) => ({id:`vip_${i+1}`,  name:`VIP ${i+1}`})),
+  ...Array.from({length:5},  (_,i) => ({id:`bar_${i+1}`,  name:`Bar ${i+1}`}))
+];
+
 let stock={}, prices={}, salesLog=[], txCount=0, shiftInfo={};
 let selProd=null, selQty=0, selPayment=null, activeCat='All', search='';
 let totalRevenue=0, syncing=false;
+let tabs={}, closedTabs=[], activeTabId=null, tabPaymentMethod=null;
 
 const SESSION_KEY = 'gsl_session';
 
@@ -515,7 +686,7 @@ function saveSession() {
   try {
     localStorage.setItem(SESSION_KEY, JSON.stringify({
       date: shiftInfo.date, name: shiftInfo.name, startTime: shiftInfo.startTime,
-      stock, prices, salesLog, totalRevenue, txCount
+      stock, prices, salesLog, totalRevenue, txCount, tabs, closedTabs
     }));
   } catch(e) {}
 }
@@ -540,16 +711,17 @@ async function init() {
         shiftInfo    = { name: s.name, date: s.date, startTime: s.startTime };
         stock        = s.stock;
         prices       = s.prices;
-        salesLog     = s.salesLog || [];
+        salesLog     = s.salesLog     || [];
         totalRevenue = s.totalRevenue || 0;
-        txCount      = s.txCount || 0;
+        txCount      = s.txCount      || 0;
+        tabs         = s.tabs         || {};
+        closedTabs   = s.closedTabs   || [];
         setStatus('READY');
         setTimeout(() => {
-          document.getElementById('hname').textContent = s.name;
-          showScreen('s-app');
-          renderGrid(PRODUCTS);
-          renderLog();
-          updateStats();
+          document.getElementById('hname').textContent   = s.name;
+          document.getElementById('ths-name').textContent = s.name;
+          showScreen('s-tables');
+          renderTableGrid();
           startClock();
           showToast(`Session restored — welcome back ${s.name}!`);
         }, 500);
@@ -670,11 +842,11 @@ function startDay() {
     stock[p] = { opening: qty, sold: 0, restocked: 0, remaining: qty };
   });
 
-  // Show app immediately — no waiting for API
-  document.getElementById('hname').textContent = name;
-  showScreen('s-app');
-  renderGrid(PRODUCTS);
-  updateStats();
+  // Show tables screen immediately
+  document.getElementById('hname').textContent  = name;
+  document.getElementById('ths-name').textContent = name;
+  showScreen('s-tables');
+  renderTableGrid();
   startClock();
   btn.disabled = false; btn.textContent = 'START DAY';
 
@@ -746,7 +918,12 @@ async function apiPost(data) {
 function fmtT(d){ return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
 function fmtDate(d){ return d.toLocaleDateString('en-GB'); }
 function startClock(){
-  const t=()=>document.getElementById('hclock').textContent=fmtT(new Date());
+  const t=()=>{
+    const time=fmtT(new Date());
+    document.getElementById('hclock').textContent=time;
+    const thc=document.getElementById('ths-clock');
+    if(thc) thc.textContent=time;
+  };
   t(); setInterval(t,1000);
 }
 
@@ -835,6 +1012,10 @@ function openQty(p) {
   document.getElementById('qpreview').textContent = '';
   document.querySelectorAll('.qbtn').forEach(b=>b.classList.remove('sel'));
   document.querySelectorAll('.qpay-btn').forEach(b=>b.classList.remove('sel'));
+  // Hide payment section in tab mode — payment happens at tab close
+  const tabMode = !!(activeTabId && tabs[activeTabId]);
+  document.querySelector('.qpay').style.display       = tabMode ? 'none' : 'grid';
+  document.querySelector('.qpay-label').style.display = tabMode ? 'none' : 'block';
   const btn = document.getElementById('qcbtn');
   btn.disabled = true; btn.textContent = 'SELECT QUANTITY';
   document.getElementById('qty-overlay').classList.add('open');
@@ -867,13 +1048,16 @@ function setPayment(method) {
 }
 
 function updQBtn() {
-  const btn = document.getElementById('qcbtn');
+  const btn  = document.getElementById('qcbtn');
   const prev = document.getElementById('qpreview');
-  const rev = selQty > 0 ? (prices[selProd]||0)*selQty : 0;
-  if (selQty > 0 && selPayment) {
+  const rev  = selQty > 0 ? (prices[selProd]||0)*selQty : 0;
+  const tabMode = !!(activeTabId && tabs[activeTabId]);
+  if (selQty > 0 && (tabMode || selPayment)) {
     btn.disabled = false;
-    btn.textContent = `SELL  ${selQty} ×  ${selProd}  ${selPayment==='CASH'?'💵':'📱'}`;
-    prev.textContent = rev > 0 ? `Revenue: ${rev.toLocaleString()} RWF` : '';
+    btn.textContent = tabMode
+      ? `ADD  ${selQty} ×  ${selProd}  TO TAB`
+      : `SELL  ${selQty} ×  ${selProd}  ${selPayment==='CASH'?'💵':'📱'}`;
+    prev.textContent = rev > 0 ? `${tabMode?'+':'Revenue: '}${rev.toLocaleString()} RWF` : '';
   } else if (selQty > 0) {
     btn.disabled = true;
     btn.textContent = 'SELECT PAYMENT METHOD';
@@ -892,37 +1076,39 @@ async function confirmSell() {
 
   s.sold += selQty;
   s.remaining -= selQty;
-  txCount++;
 
   const pr = prices[selProd] || 0;
-  const rev = pr * selQty;
-  totalRevenue += rev;
-
-  const now = new Date();
-  const entry = {
-    time: fmtT(now), date: fmtDate(now),
-    item: selProd, qty: selQty,
-    remaining: s.remaining,
-    unitPrice: pr, revenue: rev,
-    bartender: shiftInfo.name,
-    paymentMethod: selPayment || 'CASH',
-    id: txCount
-  };
-  salesLog.unshift(entry);
-
-  const q = selQty, p = selProd;
+  const q  = selQty, p = selProd;
   closeQty();
 
-  const list = search ? PRODUCTS.filter(x=>x.toLowerCase().includes(search)) : (activeCat==='All' ? PRODUCTS : (CATS[activeCat]||PRODUCTS));
-  renderGrid(list); renderLog(); updateStats();
-  showToast(`✓ ${q}× ${p} — ${rev > 0 ? rev.toLocaleString()+' RWF' : 'sold'}`);
-  saveSession();
-
-  // Log sale — fire and forget, never blocks the UI
-  setSyncStatus(true);
-  apiPost({ action:'LOG_SALE', ...entry, product: entry.item })
-    .then(() => setSyncStatus(false))
-    .catch(() => setSyncStatus(false, true));
+  if (activeTabId && tabs[activeTabId]) {
+    // ── TAB MODE: add item to active tab, defer revenue to tab close ──
+    const tab = tabs[activeTabId];
+    const existing = tab.items.find(i => i.product === p);
+    if (existing) { existing.qty += q; }
+    else { tab.items.push({ product:p, qty:q, unitPrice:pr }); }
+    updateTabBar();
+    const list = search ? PRODUCTS.filter(x=>x.toLowerCase().includes(search)) : (activeCat==='All' ? PRODUCTS : (CATS[activeCat]||PRODUCTS));
+    renderGrid(list);
+    saveSession();
+    showToast(`✓ ${q}× ${p} added to ${tab.name}`);
+  } else {
+    // ── LEGACY standalone mode (no active tab) ──
+    txCount++;
+    totalRevenue += pr * q;
+    const now = new Date();
+    const entry = { time:fmtT(now), date:fmtDate(now), item:p, qty:q,
+      remaining:s.remaining, unitPrice:pr, revenue:pr*q,
+      bartender:shiftInfo.name, paymentMethod:selPayment||'CASH', id:txCount };
+    salesLog.unshift(entry);
+    const list = search ? PRODUCTS.filter(x=>x.toLowerCase().includes(search)) : (activeCat==='All' ? PRODUCTS : (CATS[activeCat]||PRODUCTS));
+    renderGrid(list); renderLog(); updateStats();
+    showToast(`✓ ${q}× ${p} — ${(pr*q).toLocaleString()} RWF`);
+    saveSession();
+    setSyncStatus(true);
+    apiPost({ action:'LOG_SALE', ...entry, product:entry.item })
+      .then(()=>setSyncStatus(false)).catch(()=>setSyncStatus(false,true));
+  }
 }
 
 // ── RESTOCK ───────────────────────────────────────────────────────
@@ -994,19 +1180,22 @@ function undoSale(id) {
 
 // ── STATS ─────────────────────────────────────────────────────────
 function updateStats() {
-  const tot = Object.values(stock).reduce((a,s)=>a+s.sold,0);
-  const lw  = Object.values(stock).filter(s=>s.remaining>0&&(s.remaining<=3||(s.opening>0&&s.remaining/(s.opening+s.restocked)<=.2))).length;
-  const cashRev = salesLog.filter(l=>l.paymentMethod==='CASH').reduce((a,l)=>a+l.revenue,0);
-  const momoRev = salesLog.filter(l=>l.paymentMethod==='MOMO').reduce((a,l)=>a+l.revenue,0);
-  document.getElementById('ss').textContent   = tot;
+  const tot  = Object.values(stock).reduce((a,s)=>a+s.sold,0);
+  const lw   = Object.values(stock).filter(s=>s.remaining>0&&(s.remaining<=3||(s.opening>0&&s.remaining/(s.opening+s.restocked)<=.2))).length;
+  const cashRev = closedTabs.filter(t=>t.paymentMethod==='CASH').reduce((a,t)=>a+t.total,0) +
+                  salesLog.filter(l=>l.paymentMethod==='CASH').reduce((a,l)=>a+l.revenue,0);
+  const momoRev = closedTabs.filter(t=>t.paymentMethod==='MOMO').reduce((a,t)=>a+t.total,0) +
+                  salesLog.filter(l=>l.paymentMethod==='MOMO').reduce((a,l)=>a+l.revenue,0);
+  document.getElementById('ss').textContent    = tot;
   document.getElementById('srev').textContent  = totalRevenue.toLocaleString();
-  document.getElementById('stx').textContent   = txCount;
+  document.getElementById('stx').textContent   = closedTabs.length + txCount;
   document.getElementById('slow').textContent  = lw;
   document.getElementById('scash').textContent = cashRev.toLocaleString();
   document.getElementById('smomo').textContent = momoRev.toLocaleString();
   document.getElementById('bb-rev').textContent  = totalRevenue.toLocaleString();
   document.getElementById('bb-cash').textContent = cashRev.toLocaleString();
   document.getElementById('bb-momo').textContent = momoRev.toLocaleString();
+  updateTablesStats();
 }
 
 // ── SYNC STATUS ───────────────────────────────────────────────────
@@ -1024,29 +1213,23 @@ function openEndDay() {
   document.getElementById('ed-meta').textContent =
     `${shiftInfo.name}  ·  ${shiftInfo.date}  ·  ${shiftInfo.startTime} – ${fmtT(now)}`;
 
-  const sold = PRODUCTS.filter(p=>stock[p]&&stock[p].sold>0);
   let html = '';
+  const cashRev = closedTabs.filter(t=>t.paymentMethod==='CASH').reduce((a,t)=>a+t.total,0);
+  const momoRev = closedTabs.filter(t=>t.paymentMethod==='MOMO').reduce((a,t)=>a+t.total,0);
+  const totalUnits = Object.values(stock).reduce((a,s)=>a+s.sold,0);
 
-  if (!sold.length) {
-    html = '<div style="color:var(--muted);font-family:var(--mono);font-size:.8rem;padding:1rem;text-align:center">No sales recorded today</div>';
+  if (!closedTabs.length) {
+    html = '<div style="color:var(--muted);font-family:var(--mono);font-size:.8rem;padding:1rem;text-align:center">No tabs closed today</div>';
   } else {
-    html += '<div class="ed-section">Sales Summary</div>';
+    html += '<div class="ed-section">Closed Tabs</div>';
     html += '<div style="background:var(--card);border-radius:8px;padding:.3rem .5rem;margin-bottom:.5rem">';
-    html += sold.map(p => {
-      const s = stock[p];
-      const rev = s.sold * (prices[p] || 0);
-      return `<div class="erow">
-        <span class="en">${p}</span>
-        <span class="ev">${s.sold} sold · ${prices[p]>0?rev.toLocaleString()+' RWF':'—'}</span>
-      </div>`;
-    }).join('');
+    html += closedTabs.map(t => `<div class="erow">
+      <span class="en">${t.name} <span style="color:var(--muted);font-size:.65rem">${t.closedAt}</span></span>
+      <span class="ev">${t.total.toLocaleString()} RWF · ${t.paymentMethod==='CASH'?'💵':'📱'}</span>
+    </div>`).join('');
     html += '</div>';
-
-    const totalUnits = sold.reduce((a,p)=>a+stock[p].sold, 0);
-    const cashRev = salesLog.filter(l=>l.paymentMethod==='CASH').reduce((a,l)=>a+l.revenue,0);
-    const momoRev = salesLog.filter(l=>l.paymentMethod==='MOMO').reduce((a,l)=>a+l.revenue,0);
-    html += `<div class="etotal"><span>TOTAL REVENUE</span><span>${totalRevenue.toLocaleString()} RWF</span></div>`;
-    html += `<div style="margin-top:.3rem;text-align:right;font-family:var(--mono);font-size:.72rem;color:var(--muted)">${totalUnits} total units sold</div>`;
+    html += `<div class="etotal"><span>GRAND TOTAL</span><span>${totalRevenue.toLocaleString()} RWF</span></div>`;
+    html += `<div style="margin-top:.3rem;text-align:right;font-family:var(--mono);font-size:.72rem;color:var(--muted)">${totalUnits} units sold · ${closedTabs.length} tab${closedTabs.length!==1?'s':''}</div>`;
     html += '<div class="ed-section">Payment Breakdown</div>';
     html += '<div style="background:var(--card);border-radius:8px;padding:.3rem .5rem">';
     html += `<div class="erow"><span class="en">💵 Cash</span><span class="ev" style="color:var(--accent2)">${cashRev.toLocaleString()} RWF</span></div>`;
@@ -1216,6 +1399,211 @@ function showToast(msg, type='') {
   t.className = 'show' + (type ? ' '+type : '');
   clearTimeout(tT);
   tT = setTimeout(()=>t.className='', 2800);
+}
+
+// ── TABLES ────────────────────────────────────────────────────────
+function renderTableGrid() {
+  const customTables = Object.values(tabs)
+    .filter(t => !TABLES.find(tbl => tbl.id === t.id))
+    .map(t => ({id:t.id, name:t.name}));
+  const allTables = [...TABLES, ...customTables];
+  document.getElementById('tables-grid').innerHTML = allTables.map(tbl => {
+    const tab = tabs[tbl.id];
+    const qty  = tab ? tab.items.reduce((a,i)=>a+i.qty,0) : 0;
+    const tot  = tab ? tab.items.reduce((a,i)=>a+i.qty*i.unitPrice,0) : 0;
+    return `<div class="tcard ${tab?'tab-open':''}" onclick="openTable('${tbl.id}','${escHtml(tbl.name)}')">
+      <div class="tcard-name">${tbl.name}</div>
+      <div class="tcard-status ${tab?'open':'empty'}">${tab?'OPEN':'EMPTY'}</div>
+      ${tab ? `<div class="tcard-items">${qty} item${qty!==1?'s':''}</div>
+               <div class="tcard-total">${tot.toLocaleString()}</div>` : ''}
+    </div>`;
+  }).join('');
+  updateTablesStats();
+}
+function escHtml(s){ return s.replace(/'/g,"\\'"); }
+
+function updateTablesStats() {
+  const rev  = closedTabs.reduce((a,t)=>a+t.total,0);
+  const cash = closedTabs.filter(t=>t.paymentMethod==='CASH').reduce((a,t)=>a+t.total,0);
+  const momo = closedTabs.filter(t=>t.paymentMethod==='MOMO').reduce((a,t)=>a+t.total,0);
+  document.getElementById('ts-rev').textContent    = rev.toLocaleString();
+  document.getElementById('ts-open').textContent   = Object.keys(tabs).length;
+  document.getElementById('ts-closed').textContent = closedTabs.length;
+  document.getElementById('ts-cash').textContent   = cash.toLocaleString();
+  document.getElementById('ts-momo').textContent   = momo.toLocaleString();
+  document.getElementById('ts-total').textContent  = rev.toLocaleString();
+}
+
+function openTable(tabId, tableName) {
+  if (!tabs[tabId]) {
+    tabs[tabId] = { id:tabId, name:tableName, items:[], openedAt:fmtT(new Date()),
+                    date:new Date().toLocaleDateString('en-GB'), bartender:shiftInfo.name };
+    saveSession();
+  }
+  activeTabId = tabId;
+  document.getElementById('tab-bar').classList.add('show');
+  updateTabBar();
+  showScreen('s-app');
+  renderGrid(PRODUCTS);
+}
+
+function updateTabBar() {
+  const tab = tabs[activeTabId]; if (!tab) return;
+  const qty = tab.items.reduce((a,i)=>a+i.qty,0);
+  const tot = tab.items.reduce((a,i)=>a+i.qty*i.unitPrice,0);
+  document.getElementById('tab-bar-name').textContent  = tab.name;
+  document.getElementById('tab-bar-meta').textContent  = `${qty} item${qty!==1?'s':''}`;
+  document.getElementById('tab-bar-total').textContent = tot.toLocaleString()+' RWF';
+}
+
+function backToTables() {
+  activeTabId = null;
+  document.getElementById('tab-bar').classList.remove('show');
+  showScreen('s-tables');
+  renderTableGrid();
+}
+
+function openCustomTableModal() {
+  const name = prompt('Enter table / customer name:');
+  if (!name || !name.trim()) return;
+  openTable('custom_'+Date.now(), name.trim());
+}
+
+// ── ORDER PANEL ───────────────────────────────────────────────────
+function openOrderPanel() {
+  const tab = tabs[activeTabId]; if (!tab) return;
+  document.getElementById('order-tname').textContent = tab.name;
+  const qty = tab.items.reduce((a,i)=>a+i.qty,0);
+  const tot = tab.items.reduce((a,i)=>a+i.qty*i.unitPrice,0);
+  document.getElementById('order-count').textContent = `${qty} item${qty!==1?'s':''}`;
+  document.getElementById('order-grand').textContent = tot.toLocaleString()+' RWF';
+  if (!tab.items.length) {
+    document.getElementById('order-items-list').innerHTML =
+      '<div style="padding:.8rem;text-align:center;color:var(--muted);font-family:var(--mono);font-size:.78rem">No items yet</div>';
+  } else {
+    document.getElementById('order-items-list').innerHTML = tab.items.map((item,i) => `
+      <div class="oitem">
+        <span class="oitem-name">${item.product}</span>
+        <span class="oitem-qty">${item.qty}×</span>
+        <span class="oitem-sub">${(item.qty*item.unitPrice).toLocaleString()} RWF</span>
+        <button class="oitem-del" onclick="removeTabItem(${i})">✕</button>
+      </div>`).join('');
+  }
+  document.getElementById('order-overlay').classList.add('open');
+}
+function closeOrderPanel(){ document.getElementById('order-overlay').classList.remove('open'); }
+
+function removeTabItem(idx) {
+  const tab = tabs[activeTabId]; if (!tab || !tab.items[idx]) return;
+  const item = tab.items[idx];
+  if (stock[item.product]) { stock[item.product].sold -= item.qty; stock[item.product].remaining += item.qty; }
+  tab.items.splice(idx, 1);
+  updateTabBar(); renderGrid(PRODUCTS); saveSession();
+  closeOrderPanel(); openOrderPanel();
+  showToast(`↩ Removed ${item.product}`);
+}
+
+function cancelActiveTab() {
+  const tab = tabs[activeTabId]; if (!tab) return;
+  tab.items.forEach(item => {
+    if (stock[item.product]) { stock[item.product].sold -= item.qty; stock[item.product].remaining += item.qty; }
+  });
+  delete tabs[activeTabId];
+  closeOrderPanel();
+  backToTables();
+  saveSession();
+  showToast('Tab cancelled — stock restored');
+}
+
+// ── PAYMENT SCREEN ────────────────────────────────────────────────
+function openPaymentScreen() {
+  const tab = tabs[activeTabId]; if (!tab) return;
+  closeOrderPanel();
+  const tot = tab.items.reduce((a,i)=>a+i.qty*i.unitPrice,0);
+  document.getElementById('pay-meta').innerHTML =
+    `<span>Table: <b>${tab.name}</b></span><span>Bartender: ${tab.bartender}</span>` +
+    `<span>Opened: ${tab.openedAt} · ${tab.date}</span>`;
+  document.getElementById('pay-items').innerHTML = tab.items.map(item =>
+    `<div class="r-row"><span class="r-name">${item.product}</span>` +
+    `<span class="r-qty">${item.qty}×</span>` +
+    `<span class="r-price">${(item.qty*item.unitPrice).toLocaleString()} RWF</span></div>`
+  ).join('');
+  document.getElementById('pay-total').textContent = tot.toLocaleString()+' RWF';
+  tabPaymentMethod = null;
+  document.querySelectorAll('.pay-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('confirm-pay-btn').disabled = true;
+  showScreen('s-payment');
+}
+
+function selectTabPayment(method) {
+  tabPaymentMethod = method;
+  document.querySelectorAll('.pay-btn').forEach(b=>b.classList.toggle('sel', b.dataset.pay===method));
+  document.getElementById('confirm-pay-btn').disabled = false;
+}
+
+function backToTabFromPayment() {
+  showScreen('s-app');
+}
+
+async function confirmTabPayment() {
+  const tab = tabs[activeTabId]; if (!tab || !tabPaymentMethod) return;
+  const tot = tab.items.reduce((a,i)=>a+i.qty*i.unitPrice,0);
+  const now = new Date();
+  const closed = { ...tab, total:tot, paymentMethod:tabPaymentMethod, closedAt:fmtT(now) };
+  closedTabs.push(closed);
+  totalRevenue += tot; txCount++;
+  // add to salesLog for session log
+  salesLog.unshift({ time:fmtT(now), date:fmtDate(now), item:`[${tab.name}]`,
+    qty: tab.items.reduce((a,i)=>a+i.qty,0), remaining:0,
+    unitPrice:0, revenue:tot, bartender:tab.bartender,
+    paymentMethod:tabPaymentMethod, id:txCount });
+  delete tabs[activeTabId]; activeTabId = null;
+  document.getElementById('tab-bar').classList.remove('show');
+  saveSession();
+  showScreen('s-tables');
+  renderTableGrid(); updateStats();
+  showToast(`✓ ${closed.name} paid — ${tot.toLocaleString()} RWF via ${tabPaymentMethod}`);
+  setSyncStatus(true);
+  apiPost({ action:'SAVE_TAB', date:closed.date, time:closed.closedAt,
+    bartender:closed.bartender, tableName:closed.name,
+    items:JSON.stringify(closed.items), total:tot,
+    paymentMethod:tabPaymentMethod })
+    .then(()=>setSyncStatus(false)).catch(()=>setSyncStatus(false,true));
+}
+
+function printTabReceipt() {
+  const tab = tabs[activeTabId]; if (!tab) return;
+  const tot = tab.items.reduce((a,i)=>a+i.qty*i.unitPrice,0);
+  const rows = tab.items.map(i => `<tr>
+    <td>${i.product}</td><td style="text-align:center">${i.qty}</td>
+    <td style="text-align:right">${i.unitPrice.toLocaleString()}</td>
+    <td style="text-align:right;font-weight:bold">${(i.qty*i.unitPrice).toLocaleString()}</td>
+    </tr>`).join('');
+  const pay = tabPaymentMethod ? (tabPaymentMethod==='CASH'?'💵 Cash':'📱 MoMo') : '';
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Receipt</title>
+  <style>body{font-family:Arial,sans-serif;max-width:300px;margin:0 auto;padding:15px;font-size:10pt;color:#111}
+  h1{color:#d97706;font-size:15pt;text-align:center;margin:0;letter-spacing:2px}
+  .sub{text-align:center;color:#888;font-size:8pt;margin:2px 0 12px}
+  .meta{font-size:8pt;color:#666;margin-bottom:10px;border-bottom:1px dashed #ccc;padding-bottom:8px}
+  table{width:100%;border-collapse:collapse}th{text-align:left;font-size:8pt;color:#666;padding:3px 2px;border-bottom:1px solid #eee}
+  td{padding:4px 2px;font-size:9pt;border-bottom:1px solid #f0f0f0}
+  .tot{font-size:13pt;font-weight:bold;text-align:right;margin-top:10px;padding-top:7px;border-top:2px solid #111;color:#16a34a}
+  .pay{text-align:center;margin-top:8px;font-size:8pt;color:#666}
+  .ty{text-align:center;margin-top:12px;color:#d97706;font-size:8pt;font-style:italic}
+  @media print{body{max-width:100%}}</style></head><body>
+  <h1>GAME STATION LOUNGE</h1><div class="sub">POINT OF SALE RECEIPT</div>
+  <div class="meta">Table: <b>${tab.name}</b><br>Bartender: ${tab.bartender}<br>
+  Opened: ${tab.openedAt} · ${tab.date}</div>
+  <table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+  <tbody>${rows}</tbody></table>
+  <div class="tot">TOTAL: ${tot.toLocaleString()} RWF</div>
+  ${pay ? `<div class="pay">Payment: ${pay}</div>` : ''}
+  <div class="ty">Thank you for visiting Game Station Lounge!</div>
+  <script>window.onload=()=>window.print()<\/script></body></html>`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  a.download = `Receipt_${tab.name.replace(/\s/g,'_')}.html`;
+  a.click();
 }
 
 // ── PIN ───────────────────────────────────────────────────────────

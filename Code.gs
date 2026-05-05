@@ -63,6 +63,7 @@ function doGet(e) {
 function getResult(data) {
   const action = data.action;
   if (action === 'LOG_SALE')            return logSale(data);
+  if (action === 'SAVE_TAB')            return saveTab(data);
   if (action === 'END_DAY')             return endDay(data);
   if (action === 'END_DAY_SUMMARY')     return endDaySummary(data);
   if (action === 'SAVE_CLOSING_STOCK')  return saveClosingStock(data);
@@ -90,6 +91,22 @@ function logSale(data) {
   }
   sheet.appendRow([data.date,data.time,data.bartender,data.product,data.qty,data.unitPrice||0,data.revenue||0,data.remaining,data.paymentMethod||'CASH']);
   if (data.revenue > 0) sheet.getRange(sheet.getLastRow(),7).setBackground('#D5F5E3');
+  return { ok: true };
+}
+
+// ── 1b. SAVE TAB (one entry per closed tab) ───────────────────────
+function saveTab(data) {
+  const wb    = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = getOrCreateSheet(wb, 'Sales Log');
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['Date','Time','Bartender','Table','Items (JSON)','Total (RWF)','Payment']);
+    sheet.getRange(1,1,1,7).setFontWeight('bold').setBackground('#1A5276').setFontColor('#FFFFFF');
+    sheet.setFrozenRows(1);
+    sheet.setColumnWidths(1,7,160);
+  }
+  sheet.appendRow([data.date, data.time, data.bartender, data.tableName,
+                   data.items, Number(data.total)||0, data.paymentMethod]);
+  sheet.getRange(sheet.getLastRow(), 6).setBackground('#D5F5E3');
   return { ok: true };
 }
 
