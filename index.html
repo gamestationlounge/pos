@@ -209,6 +209,23 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.65
 #s-setup.screen.active{position:relative!important;height:auto!important;min-height:100vh;overflow-y:visible!important;}
 #s-loading>*{position:relative;z-index:1}
 .app-scroll{position:relative;z-index:1}
+
+/* ══════════ PIN MODAL ══════════ */
+#pin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;display:none;align-items:center;justify-content:center;padding:1rem}
+#pin-overlay.open{display:flex}
+.pin-modal{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:16px;padding:1.8rem 1.5rem 1.4rem;width:100%;max-width:300px;text-align:center}
+.pin-title{font-size:.7rem;font-family:var(--mono);color:var(--accent);letter-spacing:.18em;text-transform:uppercase;margin-bottom:1.5rem}
+.pin-dots{display:flex;justify-content:center;gap:1rem;margin-bottom:.6rem}
+.pin-dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--muted);background:transparent;transition:background .12s,border-color .12s}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent)}
+.pin-error{font-family:var(--mono);font-size:.68rem;color:var(--danger);min-height:1.2rem;margin:.5rem 0 .9rem;letter-spacing:.04em}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin-bottom:.6rem}
+.pin-btn{background:var(--card);border:1.5px solid var(--border);color:var(--text);font-family:var(--mono);font-size:1.25rem;font-weight:600;padding:.8rem 0;border-radius:10px;cursor:pointer;transition:all .1s;user-select:none;-webkit-user-select:none}
+.pin-btn:active,.pin-btn.flash{background:var(--accent);color:#000;border-color:var(--accent);transform:scale(.93)}
+.pin-btn.del{font-size:.95rem;color:var(--muted)}
+.pin-btn.del:active{background:var(--danger);color:#fff;border-color:var(--danger)}
+.pin-btn.pin-empty{visibility:hidden;pointer-events:none}
+.pin-cancel{width:100%;padding:.55rem;background:transparent;color:var(--muted);font-family:var(--font);font-size:.8rem;border:none;cursor:pointer;margin-top:.1rem}
 </style>
 </head>
 <body>
@@ -307,8 +324,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.65
       <div class="bb-revenue" id="bb-rev">0 RWF</div>
     </div>
     <div class="bb-right">
-      <button class="btn-restock" onclick="openRestock()">+ RESTOCK</button>
-      <button class="btn-endday" onclick="openEndDay()">END DAY</button>
+      <button class="btn-restock" onclick="requirePin('restock')">+ RESTOCK</button>
+      <button class="btn-endday" onclick="requirePin('endday')">END DAY</button>
     </div>
   </div>
 </div>
@@ -367,6 +384,35 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.65
       <button class="edbtn-pdf" onclick="downloadPDF()">📄 PDF</button>
       <button class="edbtn-save" id="save-btn" onclick="saveAndClose()">💾 SAVE & CLOSE</button>
     </div>
+  </div>
+</div>
+
+<!-- ══ PIN MODAL ══ -->
+<div id="pin-overlay">
+  <div class="pin-modal">
+    <div class="pin-title">Manager PIN Required</div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+    <div class="pin-grid">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn del" onclick="pinDelete()">⌫</button>
+      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn pin-empty"></button>
+    </div>
+    <button class="pin-cancel" onclick="pinCancel()">Cancel</button>
   </div>
 </div>
 
@@ -1043,6 +1089,75 @@ function showToast(msg, type='') {
   t.className = 'show' + (type ? ' '+type : '');
   clearTimeout(tT);
   tT = setTimeout(()=>t.className='', 2800);
+}
+
+// ── PIN ───────────────────────────────────────────────────────────
+const PIN = '1234';
+let pinBuf = '', pinFails = 0, pinLockUntil = 0, pinTarget = null;
+
+function requirePin(target) {
+  pinTarget = target;
+  pinBuf = '';
+  updatePinDots();
+  const errEl = document.getElementById('pin-error');
+  const now = Date.now();
+  if (pinLockUntil > now) {
+    const secs = Math.ceil((pinLockUntil - now) / 1000);
+    errEl.textContent = `Too many attempts — try in ${secs}s`;
+  } else {
+    errEl.textContent = '';
+  }
+  document.getElementById('pin-overlay').classList.add('open');
+}
+
+function pinPress(d) {
+  if (Date.now() < pinLockUntil) return;
+  if (pinBuf.length >= 4) return;
+  pinBuf += d;
+  updatePinDots();
+  if (pinBuf.length === 4) setTimeout(pinSubmit, 120);
+}
+
+function pinDelete() {
+  if (Date.now() < pinLockUntil) return;
+  pinBuf = pinBuf.slice(0, -1);
+  updatePinDots();
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++)
+    document.getElementById('pd' + i).classList.toggle('filled', i < pinBuf.length);
+}
+
+function pinSubmit() {
+  if (pinBuf === PIN) {
+    pinFails = 0;
+    closePinModal();
+    if (pinTarget === 'restock') openRestock();
+    else if (pinTarget === 'endday') openEndDay();
+  } else {
+    pinFails++;
+    pinBuf = '';
+    updatePinDots();
+    const errEl = document.getElementById('pin-error');
+    if (pinFails >= 3) {
+      pinLockUntil = Date.now() + 30000;
+      pinFails = 0;
+      errEl.textContent = 'Too many attempts — contact manager';
+      setTimeout(closePinModal, 2500);
+    } else {
+      errEl.textContent = `Wrong PIN  (${3 - pinFails} attempt${3-pinFails===1?'':'s'} left)`;
+    }
+  }
+}
+
+function pinCancel() { closePinModal(); }
+
+function closePinModal() {
+  document.getElementById('pin-overlay').classList.remove('open');
+  pinBuf = '';
+  updatePinDots();
+  document.getElementById('pin-error').textContent = '';
 }
 
 // ── START ─────────────────────────────────────────────────────────
