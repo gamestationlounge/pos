@@ -133,19 +133,31 @@ function logSale(data) {
   return { ok: true };
 }
 
-// ── 1b. SAVE TAB (one entry per closed tab) ───────────────────────
+// ── 1b. SAVE TAB (one row per product) ───────────────────────────
 function saveTab(data) {
   const wb    = SpreadsheetApp.openById(SHEET_ID);
   const sheet = getOrCreateSheet(wb, 'Sales Log');
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(['Date','Time','Bartender','Table','Items (JSON)','Total (RWF)','Payment']);
-    sheet.getRange(1,1,1,7).setFontWeight('bold').setBackground('#1A5276').setFontColor('#FFFFFF');
+    sheet.appendRow(['Date','Time','Bartender','Table','Product','Qty','Unit Price (RWF)','Revenue (RWF)','Payment']);
+    sheet.getRange(1,1,1,9).setFontWeight('bold').setBackground('#1A5276').setFontColor('#FFFFFF');
     sheet.setFrozenRows(1);
-    sheet.setColumnWidths(1,7,160);
+    sheet.setColumnWidths(1,9,150);
   }
-  sheet.appendRow([data.date, data.time, data.bartender, data.tableName,
-                   data.items, Number(data.total)||0, data.paymentMethod]);
-  sheet.getRange(sheet.getLastRow(), 6).setBackground('#D5F5E3');
+
+  // Parse items JSON and write one row per product
+  let items = [];
+  try { items = JSON.parse(data.items); } catch(e) { items = []; }
+
+  items.forEach(function(item) {
+    const lineTotal = (item.qty || 0) * (item.unitPrice || 0);
+    sheet.appendRow([
+      data.date, data.time, data.bartender, data.tableName,
+      item.product, item.qty || 0, item.unitPrice || 0,
+      lineTotal, data.paymentMethod
+    ]);
+    if (lineTotal > 0) sheet.getRange(sheet.getLastRow(), 8).setBackground('#D5F5E3');
+  });
+
   return { ok: true };
 }
 
