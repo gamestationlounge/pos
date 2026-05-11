@@ -107,6 +107,9 @@ function getResult(data) {
   if (action === 'UPDATE_PRICES')       return updatePrices(data);
   if (action === 'GET_PRICES')          return getPrices();
   if (action === 'CHECK_STOCK_ALERT')   return checkStockAlert(data);
+  if (action === 'SAVE_CREDIT')         return saveCredit(data);
+  if (action === 'GET_CREDITS')         return getCredits(data);
+  if (action === 'MARK_CREDIT_PAID')    return markCreditPaid(data);
   return { ok: false, error: 'Unknown action' };
 }
 function respond(obj) {
@@ -660,6 +663,195 @@ function updateDashboard(wb) {
   dash.setColumnWidth(1, 220);
   dash.setColumnWidth(2, 180);
   dash.setFrozenRows(1);
+}
+
+// ── 7. SAVE CREDIT ────────────────────────────────────────────────
+function saveCredit(data) {
+  const wb    = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = getOrCreateSheet(wb, 'Credits');
+
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['Date','Time','Bartender','Customer Name','Phone','Table','Items','Amount (RWF)','Status','Paid Date','Paid Method','Credit ID']);
+    sheet.getRange(1,1,1,12).setFontWeight('bold').setBackground('#f59e0b').setFontColor('#000000');
+    sheet.setFrozenRows(1);
+    sheet.setColumnWidths(1,12,130);
+  }
+
+  sheet.appendRow([
+    data.date, data.time, data.bartender,
+    data.customerName, data.phone || '', data.tableName,
+    data.items, data.amount, 'PENDING', '', '', data.creditId || ''
+  ]);
+
+  // Highlight PENDING row in light red
+  const row = sheet.getLastRow();
+  sheet.getRange(row, 1, 1, 12).setBackground('#fee2e2');
+  sheet.autoResizeColumns(1, 12);
+
+  // Send email alert to owner
+  sendCreditEmail(data);
+
+  return { ok: true };
+}
+
+// ── 8. GET CREDITS ─────────────────────────────────────────────────
+function getCredits(data) {
+  const wb    = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = wb.getSheetByName('Credits');
+  if (!sheet || sheet.getLastRow() <= 1) return { ok: true, credits: [] };
+
+  const rows = sheet.getRange(2, 1, sheet.getLastRow()-1, 12).getValues();
+  const statusFilter = data.status || 'ALL';
+
+  const credits = rows
+    .filter(r => r[0] !== '')
+    .filter(r => statusFilter === 'ALL' || r[8] === statusFilter)
+    .map(r => ({
+      date: r[0], time: r[1], bartender: r[2],
+      customerName: r[3], phone: r[4], tableName: r[5],
+      items: r[6], amount: r[7], status: r[8],
+      paidDate: r[9], paidMethod: r[10], creditId: r[11]
+    }));
+
+  return { ok: true, credits };
+}
+
+// ── 9. MARK CREDIT PAID ───────────────────────────────────────────
+function markCreditPaid(data) {
+  const wb    = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = wb.getSheetByName('Credits');
+  if (!sheet || sheet.getLastRow() <= 1) return { ok: false, error: 'Credits sheet not found' };
+
+  const rows = sheet.getRange(2, 1, sheet.getLastRow()-1, 12).getValues();
+  let updated = false;
+
+  for (let i = 0; i < rows.length; i++) {
+    // Match by creditId (col L, index 11), fall back to PENDING status
+    const matchById = data.creditId && rows[i][11] === data.creditId;
+    const matchFallback = !data.creditId && rows[i][8] === 'PENDING';
+    if (matchById || matchFallback) {
+      const sheetRow = i + 2;
+      sheet.getRange(sheetRow, 9).setValue('PAID');
+      sheet.getRange(sheetRow, 10).setValue(data.paidDate);
+      sheet.getRange(sheetRow, 11).setValue(data.paidMethod);
+      sheet.getRange(sheetRow, 1, 1, 12).setBackground('#dcfce7');
+      updated = true;
+      break;
+    }
+  }
+
+  sheet.autoResizeColumns(1, 12);
+  return { ok: true, updated };
+}
+
+// ── CREDIT EMAIL ALERT ────────────────────────────────────────────
+function sendCreditEmail(data) {
+  try {
+    const itemsList = (function() {
+      try { return JSON.parse(data.items).join('<br>  · '); } catch(e) { return data.items; }
+    })();
+
+    const subject = '📒 NEW CREDIT: ' + data.customerName + ' owes ' + Number(data.amount).toLocaleString() + ' RWF';
+
+    const htmlBody = '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">' +
+
+      '<div style="background:#1a1a2e;padding:22px 28px;text-align:center">' +
+      '<h2 style="color:#f59e0b;margin:0;font-size:20px;letter-spacing:3px">GAME STATION LOUNGE</h2>' +
+      '<p style="color:#94a3b8;margin:5px 0 0;font-size:11px;letter-spacing:2px">POINT OF SALE SYSTEM</p></div>' +
+
+      '<div style="background:#fef3c7;border-bottom:2px solid #f59e0b;padding:16px 28px;text-align:center">' +
+      '<p style="font-size:32px;margin:0">📒</p>' +
+      '<h3 style="color:#92400e;margin:6px 0 0;font-size:17px;letter-spacing:1px">NEW CREDIT RECORDED</h3></div>' +
+
+      '<div style="padding:28px">' +
+      '<p style="color:#111827;font-size:15px;margin:0 0 20px">Dear <strong>KABWA</strong>,</p>' +
+      '<p style="color:#374151;font-size:14px;margin:0 0 24px">A new credit has been recorded at Game Station Lounge.</p>' +
+
+      '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px">' +
+      '<tr style="background:#f8fafc"><td style="padding:11px 16px;border-bottom:1px solid #e5e7eb;color:#64748b;width:35%">Customer</td>' +
+      '<td style="padding:11px 16px;border-bottom:1px solid #e5e7eb;font-weight:bold;color:#111827">' + data.customerName + '</td></tr>' +
+      (data.phone ? '<tr><td style="padding:11px 16px;border-bottom:1px solid #e5e7eb;color:#64748b;background:#f8fafc">Phone</td>' +
+      '<td style="padding:11px 16px;border-bottom:1px solid #e5e7eb;color:#111827">' + data.phone + '</td></tr>' : '') +
+      '<tr style="background:#f8fafc"><td style="padding:11px 16px;border-bottom:1px solid #e5e7eb;color:#64748b">Amount Owed</td>' +
+      '<td style="padding:11px 16px;border-bottom:1px solid #e5e7eb;font-weight:bold;color:#dc2626;font-size:18px">' + Number(data.amount).toLocaleString() + ' RWF</td></tr>' +
+      '<tr><td style="padding:11px 16px;border-bottom:1px solid #e5e7eb;color:#64748b;background:#f8fafc">Table</td>' +
+      '<td style="padding:11px 16px;border-bottom:1px solid #e5e7eb;color:#111827">' + data.tableName + '</td></tr>' +
+      '<tr style="background:#f8fafc"><td style="padding:11px 16px;border-bottom:1px solid #e5e7eb;color:#64748b">Bartender</td>' +
+      '<td style="padding:11px 16px;border-bottom:1px solid #e5e7eb;color:#111827">' + data.bartender + '</td></tr>' +
+      '<tr><td style="padding:11px 16px;border-bottom:1px solid #e5e7eb;color:#64748b;background:#f8fafc">Date & Time</td>' +
+      '<td style="padding:11px 16px;border-bottom:1px solid #e5e7eb;color:#111827">' + data.date + ' at ' + data.time + '</td></tr>' +
+      '<tr style="background:#f8fafc"><td style="padding:11px 16px;color:#64748b;vertical-align:top">Items Consumed</td>' +
+      '<td style="padding:11px 16px;color:#111827;font-size:12px">· ' + itemsList + '</td></tr></table>' +
+
+      '<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:14px 18px;text-align:center">' +
+      '<p style="color:#991b1b;font-weight:bold;margin:0;font-size:13px">⚠️ Please follow up with the customer to collect payment.</p></div></div>' +
+
+      '<div style="background:#f1f5f9;padding:14px 28px;text-align:center;border-top:1px solid #e5e7eb">' +
+      '<p style="color:#94a3b8;font-size:11px;margin:0">Game Station Lounge POS — Credit Alert System</p></div></div>';
+
+    MailApp.sendEmail({ to: OWNER_EMAIL, subject, htmlBody });
+  } catch(e) {
+    Logger.log('Credit email failed: ' + e);
+  }
+}
+
+// ── WEEKLY CREDIT SUMMARY EMAIL ───────────────────────────────────
+// To enable weekly Monday emails, run setupWeeklyCreditTrigger() once
+// from the Apps Script editor (Run > setupWeeklyCreditTrigger).
+function setupWeeklyCreditTrigger() {
+  // Remove any existing weekly credit triggers to avoid duplicates
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === 'sendWeeklyCreditSummary') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('sendWeeklyCreditSummary')
+    .timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(8).create();
+}
+
+function sendWeeklyCreditSummary() {
+  try {
+    const wb    = SpreadsheetApp.openById(SHEET_ID);
+    const sheet = wb.getSheetByName('Credits');
+    if (!sheet || sheet.getLastRow() <= 1) return;
+
+    const rows = sheet.getRange(2, 1, sheet.getLastRow()-1, 11).getValues();
+    const pending = rows.filter(r => r[0] !== '' && r[8] === 'PENDING');
+    const totalOwed = pending.reduce((a, r) => a + Number(r[7]), 0);
+
+    const rows_html = pending.map(r =>
+      '<tr style="border-bottom:1px solid #e5e7eb">' +
+      '<td style="padding:9px 12px;color:#111827">' + r[3] + '</td>' +
+      '<td style="padding:9px 12px;color:#64748b">' + r[4] + '</td>' +
+      '<td style="padding:9px 12px;color:#64748b">' + r[0] + '</td>' +
+      '<td style="padding:9px 12px;color:#64748b">' + r[5] + '</td>' +
+      '<td style="padding:9px 12px;font-weight:bold;color:#dc2626">' + Number(r[7]).toLocaleString() + ' RWF</td>' +
+      '</tr>'
+    ).join('');
+
+    const subject = '📊 Weekly Credit Summary - Game Station Lounge';
+    const htmlBody = '<div style="font-family:Arial,sans-serif;max-width:660px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden">' +
+      '<div style="background:#1a1a2e;padding:22px 28px;text-align:center">' +
+      '<h2 style="color:#f59e0b;margin:0;font-size:20px;letter-spacing:3px">GAME STATION LOUNGE</h2>' +
+      '<p style="color:#94a3b8;margin:5px 0 0;font-size:11px;letter-spacing:2px">WEEKLY CREDIT SUMMARY</p></div>' +
+      '<div style="padding:24px">' +
+      '<p style="color:#111827;font-size:15px;margin:0 0 6px">Dear <strong>KABWA</strong>,</p>' +
+      '<p style="color:#374151;font-size:13px;margin:0 0 20px">Here is the weekly outstanding credit summary for Game Station Lounge.</p>' +
+      '<div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:14px;text-align:center;margin-bottom:20px">' +
+      '<div style="color:#64748b;font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Total Outstanding</div>' +
+      '<div style="color:#dc2626;font-size:26px;font-weight:bold">' + totalOwed.toLocaleString() + ' RWF</div>' +
+      '<div style="color:#64748b;font-size:12px">' + pending.length + ' pending credit' + (pending.length!==1?'s':'') + '</div></div>' +
+      (pending.length > 0 ?
+        '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
+        '<tr style="background:#f59e0b"><th style="padding:10px 12px;text-align:left;color:#000">Customer</th><th style="padding:10px 12px;text-align:left;color:#000">Phone</th><th style="padding:10px 12px;text-align:left;color:#000">Date</th><th style="padding:10px 12px;text-align:left;color:#000">Table</th><th style="padding:10px 12px;text-align:left;color:#000">Amount</th></tr>' +
+        rows_html + '</table>' :
+        '<p style="text-align:center;color:var(--accent2);font-size:14px">✅ No outstanding credits!</p>') +
+      '</div>' +
+      '<div style="background:#f1f5f9;padding:14px 28px;text-align:center;border-top:1px solid #e5e7eb">' +
+      '<p style="color:#94a3b8;font-size:11px;margin:0">Game Station Lounge POS — Automated Weekly Report</p></div></div>';
+
+    MailApp.sendEmail({ to: OWNER_EMAIL, subject, htmlBody });
+  } catch(e) {
+    Logger.log('Weekly credit summary failed: ' + e);
+  }
 }
 
 // ── HELPER ────────────────────────────────────────────────────────
