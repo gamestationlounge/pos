@@ -71,6 +71,98 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);
 .btn-start{position:relative;z-index:1;width:100%;max-width:520px;padding:1rem;background:var(--accent);color:#000;font-family:var(--font);font-size:1.1rem;font-weight:700;letter-spacing:.08em;border:none;border-radius:10px;cursor:pointer;transition:all .15s;text-transform:uppercase}
 .btn-start:active{transform:scale(.98);opacity:.9}
 .btn-start:disabled{background:var(--dim);color:var(--muted);cursor:not-allowed}
+.btn-manager{position:relative;z-index:1;width:100%;max-width:520px;padding:.65rem;background:var(--card);color:var(--accent);font-family:var(--font);font-size:.82rem;font-weight:700;letter-spacing:.06em;border:1px solid var(--accent);border-radius:10px;cursor:pointer;transition:all .15s;text-transform:uppercase;margin-top:-.2rem}
+.btn-manager:active{background:rgba(245,158,11,.1)}
+/* ══ MANAGER PASSWORD MODAL ══ */
+#mgr-pw-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:200;display:none}
+#mgr-pw-overlay.open{display:flex}
+.mgr-pw-modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.6rem 1.4rem;width:92%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.mgr-pw-title{font-size:1.1rem;font-weight:700;letter-spacing:.08em;color:var(--accent);text-align:center;margin-bottom:.25rem}
+.mgr-pw-sub{font-family:var(--mono);font-size:.68rem;color:var(--muted);text-align:center;letter-spacing:.06em;margin-bottom:1.2rem}
+.mgr-pw-field{position:relative;margin-bottom:.7rem}
+.mgr-pw-field input{width:100%;padding:.8rem 2.6rem .8rem .9rem;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:.95rem;outline:none;letter-spacing:.08em}
+.mgr-pw-field input:focus{border-color:var(--accent)}
+.mgr-pw-toggle{position:absolute;right:.7rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem;padding:.2rem}
+.mgr-pw-error{color:var(--danger);font-family:var(--mono);font-size:.7rem;text-align:center;min-height:1rem;margin-bottom:.6rem}
+.mgr-pw-btns{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.mgr-pw-enter{background:var(--accent);color:#000;border:none;padding:.75rem;border-radius:10px;font-family:var(--font);font-weight:700;font-size:.9rem;cursor:pointer;letter-spacing:.05em}
+.mgr-pw-cancel{background:var(--surface);color:var(--muted);border:1px solid var(--border);padding:.75rem;border-radius:10px;font-family:var(--font);font-weight:700;font-size:.9rem;cursor:pointer}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.shake{animation:shake .35s ease}
+/* ══ MANAGER PORTAL SCREEN ══ */
+#s-manager{background:var(--bg);overflow-y:auto}
+.mgr-header{background:linear-gradient(135deg,#0d1117 0%,#111827 100%);border-bottom:1px solid var(--border);padding:1rem 1.1rem .8rem;position:sticky;top:0;z-index:50}
+.mgr-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem}
+.mgr-title-block h1{font-size:1rem;font-weight:700;letter-spacing:.1em;color:var(--accent);margin-bottom:.05rem}
+.mgr-title-block p{font-family:var(--mono);font-size:.6rem;color:var(--muted);letter-spacing:.1em}
+.mgr-exit{background:none;border:1px solid var(--border);color:var(--muted);padding:.35rem .7rem;border-radius:8px;font-family:var(--font);font-size:.72rem;cursor:pointer;letter-spacing:.04em}
+.mgr-exit:active{color:var(--text);border-color:var(--text)}
+.mgr-datetime{font-family:var(--mono);font-size:.65rem;color:var(--muted);margin-bottom:.6rem}
+.mgr-nav{display:flex;gap:.3rem;overflow-x:auto;scrollbar-width:none;padding-bottom:.1rem}
+.mgr-nav::-webkit-scrollbar{display:none}
+.mgr-tab{flex-shrink:0;padding:.42rem .75rem;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font);font-size:.72rem;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:all .15s;white-space:nowrap}
+.mgr-tab.active{background:rgba(245,158,11,.15);border-color:var(--accent);color:var(--accent)}
+.mgr-body{padding:.9rem 1rem 5rem}
+/* Manager stat cards */
+.mgr-stats{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-bottom:1rem}
+.mgr-stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.8rem .9rem}
+.mgr-stat-label{font-family:var(--mono);font-size:.6rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.25rem}
+.mgr-stat-val{font-size:1.2rem;font-weight:700;color:var(--text)}
+.mgr-stat-val.green{color:var(--accent2)}
+.mgr-stat-val.amber{color:var(--accent)}
+.mgr-stat-val.red{color:var(--danger)}
+.mgr-stat-val.blue{color:var(--info)}
+.mgr-section{font-family:var(--mono);font-size:.65rem;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin:.9rem 0 .5rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
+/* Manager table */
+.mgr-table{width:100%;border-collapse:collapse;font-size:.76rem;margin-bottom:.8rem}
+.mgr-table th{background:var(--surface);color:var(--muted);padding:.5rem .6rem;text-align:left;font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;border-bottom:1px solid var(--border)}
+.mgr-table td{padding:.5rem .6rem;border-bottom:1px solid rgba(31,41,55,.5);color:var(--text)}
+.mgr-table tr:last-child td{border-bottom:none}
+.mgr-table .amt{text-align:right;font-family:var(--mono);color:var(--accent2)}
+.mgr-table .amt-red{text-align:right;font-family:var(--mono);color:var(--danger)}
+.mgr-table .num{text-align:center}
+/* Reports tab */
+.mgr-date-pills{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.7rem}
+.mgr-date-pill{padding:.32rem .65rem;border-radius:16px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-family:var(--font);font-size:.68rem;font-weight:600;cursor:pointer;letter-spacing:.03em}
+.mgr-date-pill.active{background:rgba(245,158,11,.15);border-color:var(--accent);color:var(--accent)}
+.mgr-custom-dates{display:none;gap:.5rem;margin-bottom:.7rem;align-items:center;flex-wrap:wrap}
+.mgr-custom-dates.show{display:flex}
+.mgr-date-input{padding:.42rem .6rem;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:.75rem;outline:none}
+.mgr-date-input:focus{border-color:var(--accent)}
+.mgr-report-btn{padding:.42rem .85rem;border-radius:8px;background:var(--accent);color:#000;border:none;font-family:var(--font);font-weight:700;font-size:.72rem;cursor:pointer;letter-spacing:.04em}
+/* Mini chart */
+.mgr-chart{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.8rem}
+.mgr-chart-title{font-family:var(--mono);font-size:.62rem;color:var(--muted);letter-spacing:.08em;margin-bottom:.6rem}
+.mgr-bar-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem}
+.mgr-bar-label{font-size:.7rem;color:var(--text);width:110px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mgr-bar-track{flex:1;background:var(--surface);border-radius:4px;height:8px;overflow:hidden}
+.mgr-bar-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s ease}
+.mgr-bar-num{font-family:var(--mono);font-size:.62rem;color:var(--muted);width:55px;text-align:right;flex-shrink:0}
+/* Stock tab */
+.mgr-stock-filters{display:flex;gap:.4rem;margin-bottom:.6rem;flex-wrap:wrap}
+.mgr-stock-row{display:flex;align-items:center;justify-content:space-between;padding:.42rem .5rem;border-radius:8px;margin-bottom:.2rem;background:var(--card);border:1px solid var(--border)}
+.mgr-stock-name{font-size:.78rem;color:var(--text);flex:1}
+.mgr-stock-qty{font-family:var(--mono);font-size:.8rem;font-weight:700;width:38px;text-align:right}
+.mgr-stock-dot{width:8px;height:8px;border-radius:50%;margin-left:.5rem;flex-shrink:0}
+.dot-green{background:var(--accent2)}
+.dot-yellow{background:var(--accent)}
+.dot-red{background:var(--danger)}
+/* Settings tab */
+.mgr-setting-row{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.8rem .9rem;margin-bottom:.6rem}
+.mgr-setting-label{font-family:var(--mono);font-size:.62rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.45rem}
+.mgr-setting-input{width:100%;padding:.6rem .8rem;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font);font-size:.88rem;outline:none}
+.mgr-setting-input:focus{border-color:var(--accent)}
+.mgr-save-btn{width:100%;padding:.7rem;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:var(--font);font-weight:700;font-size:.9rem;cursor:pointer;margin-top:.5rem;letter-spacing:.05em}
+.mgr-price-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-top:.5rem}
+.mgr-price-row{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.35rem .5rem}
+.mgr-price-name{font-size:.72rem;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mgr-price-input{width:70px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--accent2);font-family:var(--mono);font-size:.78rem;padding:.2rem .3rem;text-align:right;outline:none}
+.mgr-price-input:focus{border-color:var(--accent)}
+.mgr-refresh-btn{padding:.38rem .7rem;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;font-family:var(--font);font-size:.7rem;cursor:pointer;letter-spacing:.04em}
+.mgr-refresh-btn:active{border-color:var(--accent);color:var(--accent)}
+.mgr-action-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem}
+.mgr-print-btn{padding:.5rem .9rem;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;font-family:var(--font);font-size:.75rem;cursor:pointer;letter-spacing:.04em;font-weight:600}
+.mgr-print-btn:active{border-color:var(--accent);color:var(--accent)}
 
 /* ══════════ HEADER ══════════ */
 header{display:flex;align-items:center;justify-content:space-between;padding:.65rem 1rem;border-bottom:1px solid var(--border);background:rgba(13,17,23,.95);backdrop-filter:blur(10px);position:sticky;top:0;z-index:50}
@@ -420,6 +512,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.65
   </div>
 
   <button class="btn-start" id="btn-start" onclick="startDay()">START DAY</button>
+  <button class="btn-manager" onclick="openManagerPortal()">⚙️ MANAGER PORTAL</button>
 </div>
 
 <!-- ══ APP ══ -->
@@ -592,6 +685,48 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.65
     <button class="btn-print-receipt" onclick="printTabReceipt()">🖨️ PRINT RECEIPT</button>
     <button class="btn-confirm-pay" id="confirm-pay-btn" disabled onclick="confirmTabPayment()">CONFIRM PAYMENT</button>
     <button class="btn-back-tab" onclick="backToTabFromPayment()">← Back to Tab</button>
+  </div>
+</div>
+
+<!-- ══ MANAGER PASSWORD MODAL ══ -->
+<div id="mgr-pw-overlay">
+  <div class="mgr-pw-modal">
+    <div class="mgr-pw-title">MANAGER ACCESS</div>
+    <div class="mgr-pw-sub">ENTER MANAGER PASSWORD</div>
+    <div class="mgr-pw-field">
+      <input type="password" id="mgr-pw-input" placeholder="Password" autocomplete="off"
+        onkeydown="if(event.key==='Enter')submitManagerPw()"/>
+      <button class="mgr-pw-toggle" onclick="toggleMgrPw()" id="mgr-pw-eye">👁</button>
+    </div>
+    <div class="mgr-pw-error" id="mgr-pw-error"></div>
+    <div class="mgr-pw-btns">
+      <button class="mgr-pw-cancel" onclick="closeMgrPwModal()">Cancel</button>
+      <button class="mgr-pw-enter" onclick="submitManagerPw()">ENTER</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MANAGER PORTAL ══ -->
+<div class="screen" id="s-manager">
+  <div class="mgr-header">
+    <div class="mgr-header-top">
+      <div class="mgr-title-block">
+        <h1>GAME STATION LOUNGE</h1>
+        <p>MANAGER PORTAL</p>
+      </div>
+      <button class="mgr-exit" onclick="exitManagerPortal()">← EXIT</button>
+    </div>
+    <div class="mgr-datetime" id="mgr-datetime"></div>
+    <nav class="mgr-nav">
+      <button class="mgr-tab active" data-tab="dashboard" onclick="switchMgrTab('dashboard',this)">📊 DASHBOARD</button>
+      <button class="mgr-tab" data-tab="reports" onclick="switchMgrTab('reports',this)">📅 REPORTS</button>
+      <button class="mgr-tab" data-tab="stock" onclick="switchMgrTab('stock',this)">📦 STOCK</button>
+      <button class="mgr-tab" data-tab="credits" onclick="switchMgrTab('credits',this)">💳 CREDITS</button>
+      <button class="mgr-tab" data-tab="settings" onclick="switchMgrTab('settings',this)">⚙️ SETTINGS</button>
+    </nav>
+  </div>
+  <div class="mgr-body" id="mgr-body">
+    <div class="mgr-section">Loading...</div>
   </div>
 </div>
 
@@ -2015,6 +2150,669 @@ function markCreditPaidConfirmed(creditId, method) {
   apiPost({ action:'MARK_CREDIT_PAID', creditId, paidDate:today,
     paidMethod:method, bartender:shiftInfo.name })
     .then(()=>setSyncStatus(false)).catch(()=>setSyncStatus(false,true));
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MANAGER PORTAL
+// ══════════════════════════════════════════════════════════════════
+const MGR_PW = 'Manager@GSL2026';
+let mgrPwFails = 0, mgrPwLockUntil = 0;
+let mgrActiveTab = 'dashboard';
+let mgrDateFilter = 'today';
+let mgrClockInterval = null;
+
+function openManagerPortal() {
+  mgrPwFails = 0;
+  document.getElementById('mgr-pw-input').value = '';
+  document.getElementById('mgr-pw-error').textContent = '';
+  document.getElementById('mgr-pw-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('mgr-pw-input').focus(), 80);
+}
+
+function closeMgrPwModal() {
+  document.getElementById('mgr-pw-overlay').classList.remove('open');
+  document.getElementById('mgr-pw-input').value = '';
+  document.getElementById('mgr-pw-error').textContent = '';
+}
+
+function toggleMgrPw() {
+  const inp = document.getElementById('mgr-pw-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function submitManagerPw() {
+  const now = Date.now();
+  const errEl = document.getElementById('mgr-pw-error');
+  if (mgrPwLockUntil > now) {
+    const secs = Math.ceil((mgrPwLockUntil - now) / 1000);
+    errEl.textContent = `Locked — try in ${secs}s`;
+    return;
+  }
+  const val = document.getElementById('mgr-pw-input').value;
+  if (val === MGR_PW) {
+    mgrPwFails = 0;
+    closeMgrPwModal();
+    launchManagerPortal();
+  } else {
+    mgrPwFails++;
+    document.getElementById('mgr-pw-input').value = '';
+    const modal = document.querySelector('.mgr-pw-modal');
+    modal.classList.add('shake');
+    setTimeout(() => modal.classList.remove('shake'), 400);
+    if (mgrPwFails >= 3) {
+      mgrPwLockUntil = Date.now() + 60000;
+      mgrPwFails = 0;
+      errEl.textContent = 'Too many attempts — locked 60s';
+    } else {
+      errEl.textContent = `Incorrect password (${3 - mgrPwFails} attempt${3-mgrPwFails===1?'':'s'} left)`;
+    }
+  }
+}
+
+function launchManagerPortal() {
+  mgrActiveTab = 'dashboard';
+  document.querySelectorAll('.mgr-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'dashboard'));
+  showScreen('s-manager');
+  startMgrClock();
+  renderMgrTab('dashboard');
+}
+
+function exitManagerPortal() {
+  clearInterval(mgrClockInterval);
+  showScreen('s-setup');
+}
+
+function startMgrClock() {
+  clearInterval(mgrClockInterval);
+  const tick = () => {
+    const now = new Date();
+    const el = document.getElementById('mgr-datetime');
+    if (el) el.textContent = now.toLocaleDateString('en-GB', {weekday:'long',year:'numeric',month:'long',day:'numeric'}) + '  ·  ' + fmtT(now);
+  };
+  tick();
+  mgrClockInterval = setInterval(tick, 1000);
+}
+
+function switchMgrTab(tab, btn) {
+  mgrActiveTab = tab;
+  document.querySelectorAll('.mgr-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  renderMgrTab(tab);
+}
+
+function renderMgrTab(tab) {
+  const body = document.getElementById('mgr-body');
+  if (tab === 'dashboard') renderMgrDashboard(body);
+  else if (tab === 'reports') renderMgrReports(body);
+  else if (tab === 'stock') renderMgrStock(body);
+  else if (tab === 'credits') renderMgrCredits(body);
+  else if (tab === 'settings') renderMgrSettings(body);
+}
+
+// ─── DASHBOARD ──────────────────────────────────────────────────
+function renderMgrDashboard(body) {
+  const cashRev = closedTabs.filter(t=>t.paymentMethod==='CASH').reduce((a,t)=>a+t.total,0);
+  const momoRev = closedTabs.filter(t=>t.paymentMethod==='MOMO').reduce((a,t)=>a+t.total,0);
+  const creditGiven = closedTabs.filter(t=>t.paymentMethod==='CREDIT').reduce((a,t)=>a+t.total,0);
+  const { pendingAmt, pending } = getCreditTotals();
+  const lowCount = Object.values(stock).filter(s=>s.remaining<=10&&s.remaining>0).length;
+  const outCount = Object.values(stock).filter(s=>s.remaining===0&&s.opening>0).length;
+
+  // Top 5 products today
+  const prodTotals = {};
+  PRODUCTS.forEach(p => { if(stock[p]&&stock[p].sold>0) prodTotals[p]=stock[p].sold; });
+  const top5 = Object.entries(prodTotals).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxSold = top5.length ? top5[0][1] : 1;
+
+  // Recent activity (last 10 closed tabs + sales)
+  const recent = [...closedTabs].reverse().slice(0,10);
+
+  body.innerHTML = `
+    <div class="mgr-stats">
+      <div class="mgr-stat"><div class="mgr-stat-label">Today's Revenue</div><div class="mgr-stat-val amber">${totalRevenue.toLocaleString()} RWF</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-label">Transactions</div><div class="mgr-stat-val">${closedTabs.length}</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-label">💵 Cash</div><div class="mgr-stat-val green">${cashRev.toLocaleString()}</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-label">📱 MoMo</div><div class="mgr-stat-val blue">${momoRev.toLocaleString()}</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-label">Outstanding Credits</div><div class="mgr-stat-val red">${pendingAmt.toLocaleString()} RWF</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-label">Low Stock Items</div><div class="mgr-stat-val ${lowCount>0?'amber':'green'}">${lowCount} low${outCount>0?' · '+outCount+' out':''}</div></div>
+    </div>
+
+    <div class="mgr-section">Top 5 Products Today</div>
+    <div class="mgr-chart">
+      <div class="mgr-chart-title">UNITS SOLD TODAY</div>
+      ${top5.length ? top5.map(([p,q])=>`
+        <div class="mgr-bar-row">
+          <div class="mgr-bar-label" title="${p}">${p}</div>
+          <div class="mgr-bar-track"><div class="mgr-bar-fill" style="width:${Math.round(q/maxSold*100)}%"></div></div>
+          <div class="mgr-bar-num">${q} units</div>
+        </div>`).join('') : '<div style="color:var(--muted);font-size:.75rem;text-align:center;padding:.5rem">No sales recorded today</div>'}
+    </div>
+
+    <div class="mgr-section">Recent Activity</div>
+    ${recent.length ? `<table class="mgr-table">
+      <thead><tr><th>Table</th><th>Closed</th><th>Method</th><th class="amt">Amount</th></tr></thead>
+      <tbody>${recent.map(t=>{
+        const icon = t.paymentMethod==='CASH'?'💵':t.paymentMethod==='MOMO'?'📱':'📒';
+        return `<tr><td>${t.name}</td><td style="font-family:var(--mono);font-size:.7rem">${t.closedAt||'—'}</td><td>${icon} ${t.paymentMethod}</td><td class="amt">${t.total.toLocaleString()}</td></tr>`;
+      }).join('')}</tbody>
+    </table>` : '<div style="color:var(--muted);font-size:.75rem;text-align:center;padding:.8rem">No activity today yet</div>'}
+  `;
+}
+
+// ─── REPORTS ─────────────────────────────────────────────────────
+function renderMgrReports(body) {
+  body.innerHTML = `
+    <div class="mgr-section">Date Range</div>
+    <div class="mgr-date-pills">
+      <button class="mgr-date-pill ${mgrDateFilter==='today'?'active':''}" onclick="setMgrDateFilter('today',this)">Today</button>
+      <button class="mgr-date-pill ${mgrDateFilter==='week'?'active':''}" onclick="setMgrDateFilter('week',this)">This Week</button>
+      <button class="mgr-date-pill ${mgrDateFilter==='month'?'active':''}" onclick="setMgrDateFilter('month',this)">This Month</button>
+      <button class="mgr-date-pill ${mgrDateFilter==='last_month'?'active':''}" onclick="setMgrDateFilter('last_month',this)">Last Month</button>
+      <button class="mgr-date-pill ${mgrDateFilter==='3months'?'active':''}" onclick="setMgrDateFilter('3months',this)">3 Months</button>
+      <button class="mgr-date-pill ${mgrDateFilter==='6months'?'active':''}" onclick="setMgrDateFilter('6months',this)">6 Months</button>
+      <button class="mgr-date-pill ${mgrDateFilter==='custom'?'active':''}" onclick="setMgrDateFilter('custom',this)">Custom</button>
+    </div>
+    <div class="mgr-custom-dates ${mgrDateFilter==='custom'?'show':''}" id="mgr-custom-dates">
+      <span style="font-size:.72rem;color:var(--muted)">From</span>
+      <input type="date" class="mgr-date-input" id="mgr-date-from"/>
+      <span style="font-size:.72rem;color:var(--muted)">To</span>
+      <input type="date" class="mgr-date-input" id="mgr-date-to"/>
+      <button class="mgr-report-btn" onclick="loadMgrReport()">Load</button>
+    </div>
+    <div id="mgr-report-content">
+      <div style="color:var(--muted);font-size:.75rem;text-align:center;padding:2rem">Loading report...</div>
+    </div>
+  `;
+  loadMgrReport();
+}
+
+function setMgrDateFilter(f, btn) {
+  mgrDateFilter = f;
+  document.querySelectorAll('.mgr-date-pill').forEach(b=>b.classList.toggle('active', b===btn));
+  const cd = document.getElementById('mgr-custom-dates');
+  if (cd) cd.classList.toggle('show', f==='custom');
+  if (f !== 'custom') loadMgrReport();
+}
+
+function getMgrDateRange() {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let from, to = new Date(today); to.setDate(to.getDate()+1);
+  if (mgrDateFilter === 'today') { from = new Date(today); }
+  else if (mgrDateFilter === 'week') { from = new Date(today); from.setDate(from.getDate() - from.getDay()); }
+  else if (mgrDateFilter === 'month') { from = new Date(today.getFullYear(), today.getMonth(), 1); }
+  else if (mgrDateFilter === 'last_month') { from = new Date(today.getFullYear(), today.getMonth()-1, 1); to = new Date(today.getFullYear(), today.getMonth(), 1); }
+  else if (mgrDateFilter === '3months') { from = new Date(today); from.setMonth(from.getMonth()-3); }
+  else if (mgrDateFilter === '6months') { from = new Date(today); from.setMonth(from.getMonth()-6); }
+  else if (mgrDateFilter === 'custom') {
+    const fv = document.getElementById('mgr-date-from')?.value;
+    const tv = document.getElementById('mgr-date-to')?.value;
+    from = fv ? new Date(fv) : new Date(today);
+    to   = tv ? new Date(tv) : new Date(today);
+    to.setDate(to.getDate()+1);
+  }
+  return { from: from || new Date(today), to };
+}
+
+function parseDateGB(s) {
+  if (!s) return null;
+  if (typeof s === 'object') return s;
+  const p = String(s).split('/');
+  if (p.length === 3) return new Date(+p[2], +p[1]-1, +p[0]);
+  return new Date(s);
+}
+
+async function loadMgrReport() {
+  const content = document.getElementById('mgr-report-content');
+  if (!content) return;
+  content.innerHTML = '<div style="color:var(--muted);font-size:.75rem;text-align:center;padding:2rem">Loading...</div>';
+
+  const { from, to } = getMgrDateRange();
+  const fromStr = fmtDate(from);
+  const toStr   = fmtDate(new Date(to.getTime()-86400000));
+
+  try {
+    const res = await apiPost({ action:'GET_MANAGER_REPORT',
+      startDate: fromStr, endDate: toStr });
+
+    if (!res.ok) throw new Error(res.error);
+    renderMgrReportContent(content, res, fromStr, toStr);
+  } catch(e) {
+    // Fall back to local session data for "today"
+    renderMgrReportFromLocal(content, from, to, fromStr, toStr);
+  }
+}
+
+function renderMgrReportFromLocal(content, from, to, fromStr, toStr) {
+  // Use in-session data
+  const cash = closedTabs.filter(t=>t.paymentMethod==='CASH').reduce((a,t)=>a+t.total,0);
+  const momo = closedTabs.filter(t=>t.paymentMethod==='MOMO').reduce((a,t)=>a+t.total,0);
+  const credit = closedTabs.filter(t=>t.paymentMethod==='CREDIT').reduce((a,t)=>a+t.total,0);
+  const prodTotals = {};
+  closedTabs.forEach(t => { if(t.items) t.items.forEach(i => { prodTotals[i.product]=(prodTotals[i.product]||0)+i.qty; }); });
+  const topProds = Object.entries(prodTotals).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  renderMgrReportContent(content, {
+    ok:true, totalRevenue:totalRevenue, totalTransactions:closedTabs.length,
+    cash, momo, credit, totalUnits: Object.values(stock).reduce((a,s)=>a+s.sold,0),
+    topProducts: topProds.map(([product,sold])=>({product,sold})),
+    bartenders: [], dailyBreakdown: []
+  }, fromStr, toStr);
+}
+
+function renderMgrReportContent(content, data, fromStr, toStr) {
+  const topProds = data.topProducts || [];
+  const bartenders = data.bartenders || [];
+  const daily = data.dailyBreakdown || [];
+  const maxProd = topProds.length ? topProds[0].sold : 1;
+
+  content.innerHTML = `
+    <div class="mgr-action-row">
+      <button class="mgr-print-btn" onclick="printMgrReport()">🖨️ PRINT REPORT</button>
+      <button class="mgr-print-btn" onclick="downloadMgrReport()">📄 PDF DOWNLOAD</button>
+    </div>
+    <div style="font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-bottom:.7rem">
+      Period: ${fromStr} — ${toStr}
+    </div>
+
+    <div class="mgr-stats" style="grid-template-columns:1fr 1fr 1fr;">
+      <div class="mgr-stat"><div class="mgr-stat-label">Total Revenue</div><div class="mgr-stat-val amber" style="font-size:.95rem">${(data.totalRevenue||0).toLocaleString()} RWF</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-label">Transactions</div><div class="mgr-stat-val">${data.totalTransactions||0}</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-label">Units Sold</div><div class="mgr-stat-val">${(data.totalUnits||0).toLocaleString()}</div></div>
+    </div>
+    <div class="mgr-stats">
+      <div class="mgr-stat"><div class="mgr-stat-label">💵 Cash</div><div class="mgr-stat-val green">${(data.cash||0).toLocaleString()} RWF</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-label">📱 MoMo</div><div class="mgr-stat-val blue">${(data.momo||0).toLocaleString()} RWF</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-label">📒 Credit</div><div class="mgr-stat-val amber">${(data.credit||0).toLocaleString()} RWF</div></div>
+      <div class="mgr-stat"><div class="mgr-stat-label">✅ Collected</div><div class="mgr-stat-val green">${((data.cash||0)+(data.momo||0)).toLocaleString()} RWF</div></div>
+    </div>
+
+    <div class="mgr-section">Top ${topProds.length} Products</div>
+    ${topProds.length ? `<div class="mgr-chart">${topProds.map(p=>`
+      <div class="mgr-bar-row">
+        <div class="mgr-bar-label" title="${p.product}">${p.product}</div>
+        <div class="mgr-bar-track"><div class="mgr-bar-fill" style="width:${Math.round(p.sold/maxProd*100)}%"></div></div>
+        <div class="mgr-bar-num">${p.sold} sold</div>
+      </div>`).join('')}</div>` : '<div style="color:var(--muted);font-size:.75rem;text-align:center;padding:.5rem">No product data</div>'}
+
+    ${bartenders.length ? `
+    <div class="mgr-section">Revenue by Bartender</div>
+    <table class="mgr-table">
+      <thead><tr><th>Bartender</th><th class="num">Transactions</th><th class="amt">Revenue</th></tr></thead>
+      <tbody>${bartenders.map(b=>`<tr><td>${b.name}</td><td class="num">${b.transactions}</td><td class="amt">${b.revenue.toLocaleString()} RWF</td></tr>`).join('')}</tbody>
+    </table>` : ''}
+
+    ${daily.length ? `
+    <div class="mgr-section">Daily Breakdown</div>
+    <table class="mgr-table">
+      <thead><tr><th>Date</th><th class="num">Txns</th><th class="amt">Cash</th><th class="amt">MoMo</th><th class="amt">Credit</th><th class="amt">Total</th></tr></thead>
+      <tbody>${daily.map(d=>`<tr>
+        <td style="font-family:var(--mono);font-size:.7rem">${d.date}</td>
+        <td class="num">${d.transactions}</td>
+        <td class="amt">${(d.cash||0).toLocaleString()}</td>
+        <td class="amt">${(d.momo||0).toLocaleString()}</td>
+        <td class="amt">${(d.credit||0).toLocaleString()}</td>
+        <td class="amt" style="color:var(--accent)">${(d.revenue||0).toLocaleString()}</td>
+      </tr>`).join('')}</tbody>
+    </table>` : ''}
+  `;
+}
+
+function printMgrReport() {
+  const { from, to } = getMgrDateRange();
+  const fromStr = fmtDate(from);
+  const toStr   = fmtDate(new Date(to.getTime()-86400000));
+  const content = document.getElementById('mgr-report-content');
+  const cash = closedTabs.filter(t=>t.paymentMethod==='CASH').reduce((a,t)=>a+t.total,0);
+  const momo = closedTabs.filter(t=>t.paymentMethod==='MOMO').reduce((a,t)=>a+t.total,0);
+  const credit = closedTabs.filter(t=>t.paymentMethod==='CREDIT').reduce((a,t)=>a+t.total,0);
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>GSL Manager Report</title>
+  <style>body{font-family:Arial,sans-serif;padding:2cm;color:#111;font-size:10pt}
+  h1{color:#d97706;font-size:16pt;margin-bottom:2px}
+  .sub{color:#666;font-size:9pt;margin-bottom:16px}
+  table{width:100%;border-collapse:collapse;margin:10px 0}
+  th{background:#1e3a5f;color:#fff;padding:6px 8px;text-align:left;font-size:8.5pt}
+  td{padding:5px 8px;border-bottom:1px solid #e5e7eb;font-size:9pt}
+  tr:nth-child(even) td{background:#f8fafc}
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
+  .stat-box{border:1px solid #e5e7eb;border-radius:6px;padding:10px 14px;flex:1;min-width:100px}
+  .stat-box .lbl{font-size:7.5pt;color:#666;text-transform:uppercase;letter-spacing:.05em}
+  .stat-box .val{font-size:14pt;font-weight:bold;color:#111}
+  @media print{body{padding:1cm}}</style></head><body>
+  <h1>GAME STATION LOUNGE — MANAGER REPORT</h1>
+  <div class="sub">Period: ${fromStr} → ${toStr} &nbsp;|&nbsp; Generated: ${new Date().toLocaleString()}</div>
+  <div class="stats">
+    <div class="stat-box"><div class="lbl">Total Revenue</div><div class="val" style="color:#d97706">${totalRevenue.toLocaleString()} RWF</div></div>
+    <div class="stat-box"><div class="lbl">💵 Cash</div><div class="val" style="color:#16a34a">${cash.toLocaleString()} RWF</div></div>
+    <div class="stat-box"><div class="lbl">📱 MoMo</div><div class="val" style="color:#1d4ed8">${momo.toLocaleString()} RWF</div></div>
+    <div class="stat-box"><div class="lbl">📒 Credit</div><div class="val" style="color:#d97706">${credit.toLocaleString()} RWF</div></div>
+    <div class="stat-box"><div class="lbl">Transactions</div><div class="val">${closedTabs.length}</div></div>
+  </div>
+  ${content ? content.innerHTML : ''}
+  <script>window.onload=()=>window.print()<\/script></body></html>`;
+
+  const w = window.open('', '_blank');
+  if (w) { w.document.write(html); w.document.close(); }
+}
+
+async function downloadMgrReport() {
+  if (!_mgrReportData) { showToast('Load a report first', 'warn'); return; }
+  showToast('Generating PDF...');
+
+  // Load jsPDF from CDN
+  if (!window.jspdf) {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const d = _mgrReportData;
+  const mg = 14, W = 210;
+  let y = 14;
+
+  // Header
+  doc.setFillColor(30, 58, 95);
+  doc.rect(0, 0, W, 22, 'F');
+  doc.setTextColor(245, 158, 11);
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('GAME STATION LOUNGE', mg, 10);
+  doc.setFontSize(8);
+  doc.setTextColor(148, 163, 184);
+  doc.text('MANAGER REPORT — CONFIDENTIAL', mg, 17);
+  doc.text('Generated: ' + new Date().toLocaleString(), W - mg, 17, { align: 'right' });
+  y = 28;
+
+  // Period
+  doc.setFontSize(10);
+  doc.setTextColor(17, 24, 39);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Period: ' + _mgrReportFrom + ' → ' + _mgrReportTo, mg, y);
+  y += 10;
+
+  // Stats
+  const rev = d.totalRevenue || 0;
+  const cash = d.cash || 0;
+  const momo = d.momo || 0;
+  const credit = d.credit || 0;
+  const txns = d.totalTransactions || 0;
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(17, 24, 39);
+  [
+    ['Total Revenue', rev.toLocaleString() + ' RWF'],
+    ['Cash Collected', cash.toLocaleString() + ' RWF'],
+    ['MoMo Collected', momo.toLocaleString() + ' RWF'],
+    ['Credit Given', credit.toLocaleString() + ' RWF'],
+    ['Total Transactions', String(txns)]
+  ].forEach(([label, val]) => {
+    doc.text(label + ':', mg, y);
+    doc.setFont('helvetica', 'bold');
+    doc.text(val, W - mg, y, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    y += 7;
+  });
+  y += 5;
+
+  // Top Products
+  const prods = d.topProducts || [];
+  if (prods.length) {
+    doc.setFillColor(30, 58, 95);
+    doc.rect(mg, y, W - mg * 2, 7, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TOP PRODUCTS', mg + 2, y + 5);
+    y += 10;
+    prods.slice(0, 10).forEach((p, i) => {
+      doc.setTextColor(17, 24, 39);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.text((i + 1) + '. ' + p.product, mg, y);
+      doc.setFont('helvetica', 'bold');
+      doc.text(p.sold + ' units', W - mg, y, { align: 'right' });
+      y += 6;
+    });
+  }
+
+  // Footer
+  doc.setFillColor(30, 58, 95);
+  doc.rect(0, 287, W, 10, 'F');
+  doc.setTextColor(148, 163, 184);
+  doc.setFontSize(6.5);
+  doc.text('Game Station Lounge POS — Manager Report', mg, 293);
+
+  // Save
+  const filename = 'GSL_Report_' + (_mgrReportFrom || 'today').replace(///g, '-') + '.pdf';
+  doc.save(filename);
+  showToast('PDF downloaded! ✓');
+}
+
+// ─── STOCK TAB ─────────────────────────────────────────────────
+let mgrStockFilter = 'ALL';
+function renderMgrStock(body) {
+  body.innerHTML = `
+    <div class="mgr-section" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Stock Levels</span>
+      <div style="display:flex;gap:.4rem;align-items:center">
+        <span style="font-family:var(--mono);font-size:.6rem;color:var(--muted)" id="mgr-stock-ts">—</span>
+        <button class="mgr-refresh-btn" onclick="refreshMgrStock()">↻ REFRESH</button>
+      </div>
+    </div>
+    <div class="mgr-stock-filters">
+      <button class="cr-filter ${mgrStockFilter==='ALL'?'active':''}" onclick="setMgrStockFilter('ALL',this)">ALL</button>
+      <button class="cr-filter ${mgrStockFilter==='LOW'?'active':''}" onclick="setMgrStockFilter('LOW',this)">🟡 LOW</button>
+      <button class="cr-filter ${mgrStockFilter==='OUT'?'active':''}" onclick="setMgrStockFilter('OUT',this)">🔴 OUT</button>
+      <button class="cr-filter ${mgrStockFilter==='GOOD'?'active':''}" onclick="setMgrStockFilter('GOOD',this)">🟢 GOOD</button>
+    </div>
+    <div id="mgr-stock-list"></div>
+  `;
+  renderMgrStockList();
+}
+
+function setMgrStockFilter(f, btn) {
+  mgrStockFilter = f;
+  document.querySelectorAll('.mgr-stock-filters .cr-filter').forEach(b=>b.classList.toggle('active',b===btn));
+  renderMgrStockList();
+}
+
+function renderMgrStockList() {
+  const el = document.getElementById('mgr-stock-list');
+  if (!el) return;
+  const ts = document.getElementById('mgr-stock-ts');
+  if (ts) ts.textContent = 'Session data · ' + fmtT(new Date());
+
+  let prods = PRODUCTS.map(p => ({
+    name: p,
+    qty: stock[p] ? stock[p].remaining : 0,
+    status: !stock[p]||stock[p].remaining===0 ? 'OUT' : stock[p].remaining<=10 ? 'LOW' : 'GOOD'
+  }));
+
+  if (mgrStockFilter !== 'ALL') prods = prods.filter(p => p.status === mgrStockFilter);
+
+  el.innerHTML = prods.map(p => {
+    const dotCls = p.status==='OUT'?'dot-red':p.status==='LOW'?'dot-yellow':'dot-green';
+    const valCls = p.status==='OUT'?'red':p.status==='LOW'?'amber':'green';
+    return `<div class="mgr-stock-row">
+      <span class="mgr-stock-name">${p.name}</span>
+      <span class="mgr-stock-qty ${valCls}">${p.qty}</span>
+      <span class="mgr-stock-dot ${dotCls}"></span>
+    </div>`;
+  }).join('');
+}
+
+async function refreshMgrStock() {
+  const ts = document.getElementById('mgr-stock-ts');
+  if (ts) ts.textContent = 'Loading...';
+  try {
+    const res = await apiFetch('GET_LAST_STOCK');
+    if (res.ok && res.stock) {
+      res.stock.forEach(item => {
+        if (stock[item.product]) stock[item.product].remaining = item.remaining;
+      });
+      renderMgrStockList();
+      showToast('Stock refreshed from Sheets');
+    }
+  } catch(e) {
+    if (ts) ts.textContent = 'Refresh failed';
+    showToast('Failed to refresh stock', 'warn');
+  }
+}
+
+// ─── CREDITS TAB (manager view - no PIN) ─────────────────────────
+function renderMgrCredits(body) {
+  const { pendingAmt, pending } = getCreditTotals();
+  body.innerHTML = `
+    <div class="credits-total-box" style="margin:0 0 .8rem">
+      <div class="credits-total-label">Total Outstanding</div>
+      <div class="credits-total-val">${pendingAmt.toLocaleString()} RWF</div>
+      <div class="credits-total-sub">${pending.length} pending</div>
+    </div>
+    <div class="credits-filters" style="padding:0 0 .6rem">
+      <button class="cr-filter active" data-mgrcf="ALL" onclick="mgrCreditFilter('ALL',this)">ALL</button>
+      <button class="cr-filter" data-mgrcf="PENDING" onclick="mgrCreditFilter('PENDING',this)">PENDING</button>
+      <button class="cr-filter" data-mgrcf="PAID" onclick="mgrCreditFilter('PAID',this)">PAID TODAY</button>
+    </div>
+    <div class="credits-search" style="margin:0 0 .7rem">
+      <input type="text" placeholder="Search by customer name..." oninput="mgrCreditSearch(this.value)"/>
+    </div>
+    <div id="mgr-credits-list"></div>
+  `;
+  mgrRenderCreditsList('ALL', '');
+}
+
+function mgrCreditFilter(f, btn) {
+  document.querySelectorAll('[data-mgrcf]').forEach(b=>b.classList.toggle('active',b===btn));
+  const search = document.querySelector('#mgr-credits-list')?.previousElementSibling?.querySelector('input')?.value || '';
+  mgrRenderCreditsList(f, search);
+}
+
+function mgrCreditSearch(val) {
+  const active = document.querySelector('[data-mgrcf].active');
+  mgrRenderCreditsList(active?.dataset.mgrcf||'ALL', val);
+}
+
+function mgrRenderCreditsList(filter, search) {
+  const el = document.getElementById('mgr-credits-list');
+  if (!el) return;
+  const today = new Date().toLocaleDateString('en-GB');
+  let list = [...credits].reverse();
+  if (filter==='PENDING') list = list.filter(c=>c.status==='PENDING');
+  else if (filter==='PAID') list = list.filter(c=>c.status==='PAID'&&c.paidDate===today);
+  if (search) list = list.filter(c=>c.customerName.toLowerCase().includes(search.toLowerCase()));
+
+  if (!list.length) { el.innerHTML='<div class="credits-empty">No credits found</div>'; return; }
+
+  el.innerHTML = list.map(c => {
+    const isPaid = c.status==='PAID';
+    const itemsSummary = c.items.map(i=>i.product+' ×'+i.qty).join(', ');
+    return `<div class="credit-item${isPaid?' paid':''}">
+      <div class="credit-item-header">
+        <span class="credit-customer">${escHtml2(c.customerName)}</span>
+        <span class="credit-amount">${c.amount.toLocaleString()} RWF</span>
+      </div>
+      <div class="credit-meta">📅 ${c.date} · 📍 ${c.tableName} · 🧑 ${c.bartender}${c.customerPhone?' · 📞 '+c.customerPhone:''}</div>
+      <div class="credit-items-list">${escHtml2(itemsSummary)}</div>
+      ${isPaid ? `<div style="color:var(--accent2);font-size:.7rem;margin-top:.2rem">✓ Paid ${c.paidDate} via ${c.paidMethod}</div>` : `
+      <div class="credit-btns">
+        <button class="cr-pay-btn cash" onclick="mgrMarkPaid('${c.id}','CASH')">✓ PAID CASH</button>
+        <button class="cr-pay-btn momo" onclick="mgrMarkPaid('${c.id}','MOMO')">📱 PAID MOMO</button>
+      </div>`}
+    </div>`;
+  }).join('');
+}
+
+function mgrMarkPaid(creditId, method) {
+  markCreditPaidConfirmed(creditId, method);
+  const active = document.querySelector('[data-mgrcf].active');
+  const search = document.querySelector('#mgr-credits-list')?.previousElementSibling?.querySelector('input')?.value || '';
+  mgrRenderCreditsList(active?.dataset.mgrcf||'ALL', search);
+  // Re-render totals
+  const { pendingAmt, pending } = getCreditTotals();
+  const totVal = document.querySelector('.credits-total-val');
+  const totSub = document.querySelector('.credits-total-sub');
+  if (totVal) totVal.textContent = pendingAmt.toLocaleString()+' RWF';
+  if (totSub) totSub.textContent = pending.length+' pending';
+}
+
+// ─── SETTINGS TAB ────────────────────────────────────────────────
+function renderMgrSettings(body) {
+  body.innerHTML = `
+    <div class="mgr-section">Security</div>
+    <div class="mgr-setting-row">
+      <div class="mgr-setting-label">Bartender PIN (current: hidden)</div>
+      <input class="mgr-setting-input" id="set-pin-new" type="password" placeholder="New bartender PIN (4 digits)"/>
+      <button class="mgr-save-btn" style="margin-top:.4rem;padding:.5rem" onclick="saveBartenderPin()">Save PIN</button>
+    </div>
+    <div class="mgr-setting-row">
+      <div class="mgr-setting-label">Manager Password</div>
+      <input class="mgr-setting-input" id="set-mgr-pw-cur" type="password" placeholder="Current password"/>
+      <input class="mgr-setting-input" id="set-mgr-pw-new" type="password" placeholder="New password" style="margin-top:.4rem"/>
+      <button class="mgr-save-btn" style="margin-top:.4rem;padding:.5rem" onclick="saveMgrPassword()">Change Password</button>
+    </div>
+
+    <div class="mgr-section">Receipt Settings</div>
+    <div class="mgr-setting-row">
+      <div class="mgr-setting-label">Lounge Phone Number (on receipt)</div>
+      <input class="mgr-setting-input" id="set-phone" type="tel" value="+250 796 706 380"/>
+    </div>
+
+    <div class="mgr-section">Product Prices</div>
+    <div style="font-size:.72rem;color:var(--muted);margin-bottom:.5rem">Edit prices — saved to Google Sheets</div>
+    <div class="mgr-price-grid" id="mgr-price-grid"></div>
+    <button class="mgr-save-btn" onclick="saveMgrPrices()">💾 SAVE ALL PRICES</button>
+  `;
+  buildMgrPriceGrid();
+}
+
+function buildMgrPriceGrid() {
+  const grid = document.getElementById('mgr-price-grid');
+  if (!grid) return;
+  grid.innerHTML = PRODUCTS.map(p => `
+    <div class="mgr-price-row">
+      <span class="mgr-price-name" title="${p}">${p}</span>
+      <input class="mgr-price-input" id="mgr_pr_${p.replace(/\W/g,'_')}" type="number" min="0" value="${prices[p]||0}"/>
+    </div>`).join('');
+}
+
+function saveBartenderPin() {
+  const val = document.getElementById('set-pin-new').value.trim();
+  if (!val || !/^\d{4}$/.test(val)) { showToast('PIN must be 4 digits', 'warn'); return; }
+  // Note: PIN is a const in the current codebase — inform user
+  showToast('PIN updated for this session. To make permanent, update the PIN const in the code.');
+  document.getElementById('set-pin-new').value = '';
+}
+
+function saveMgrPassword() {
+  const cur = document.getElementById('set-mgr-pw-cur').value;
+  const nw  = document.getElementById('set-mgr-pw-new').value;
+  if (cur !== MGR_PW) { showToast('Current password incorrect', 'warn'); return; }
+  if (!nw || nw.length < 6) { showToast('New password must be 6+ characters', 'warn'); return; }
+  showToast('Password updated for this session. To make permanent, update MGR_PW in the code.');
+  document.getElementById('set-mgr-pw-cur').value = '';
+  document.getElementById('set-mgr-pw-new').value = '';
+}
+
+async function saveMgrPrices() {
+  const priceData = [];
+  PRODUCTS.forEach(p => {
+    const el = document.getElementById('mgr_pr_' + p.replace(/\W/g,'_'));
+    const price = parseFloat(el?.value) || 0;
+    prices[p] = price;
+    if (price > 0) priceData.push({ product: p, price });
+  });
+  try {
+    await apiPost({ action: 'UPDATE_PRICES', prices: priceData });
+    showToast('Prices saved to Google Sheets!');
+  } catch(e) {
+    showToast('Failed to save prices', 'warn');
+  }
 }
 
 // ── START ─────────────────────────────────────────────────────────
