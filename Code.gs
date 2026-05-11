@@ -886,10 +886,17 @@ function getManagerReport(data) {
       if (!rowDate || rowDate < startD || rowDate > endD) return;
 
       var bartender = r[2] || '—';
-      var product   = r[4] || '';   // Column E — product name
-      var qty       = Number(r[5]) || 0;  // Column F — quantity
-      var revenue   = Number(r[7]) || 0;  // Column H — revenue
-      var method    = String(r[8] || 'CASH').toUpperCase();
+      // Detect format: new tab format has Table/VIP/Bar name in r[3]; old format has product in r[3]
+      var isTableFormat = r[3] && (
+        String(r[3]).startsWith('Table') ||
+        String(r[3]).startsWith('VIP') ||
+        String(r[3]).startsWith('Bar') ||
+        String(r[3]).length > 20
+      );
+      var product = isTableFormat ? (r[4] || '') : (r[3] || '');
+      var qty     = isTableFormat ? Number(r[5]) : Number(r[4]);
+      var revenue = isTableFormat ? (Number(r[7]) || 0) : (Number(r[6]) || 0);
+      var method  = String((isTableFormat ? r[8] : r[7]) || 'CASH').toUpperCase();
       var dateKey   = r[0] instanceof Date
         ? r[0].toLocaleDateString('en-GB')
         : String(r[0]);
