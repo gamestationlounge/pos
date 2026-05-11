@@ -2589,7 +2589,7 @@ async function downloadMgrReport() {
   doc.text('Game Station Lounge POS — Manager Report', mg, 293);
 
   // Save
-  const filename = 'GSL_Report_' + (_mgrReportFrom || 'today').replace(///g, '-') + '.pdf';
+  const filename = 'GSL_Report_' + (_mgrReportFrom || 'today').replace(/\//g, '-') + '.pdf';
   doc.save(filename);
   showToast('PDF downloaded! ✓');
 }
