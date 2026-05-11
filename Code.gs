@@ -110,6 +110,8 @@ function getResult(data) {
   if (action === 'SAVE_CREDIT')         return saveCredit(data);
   if (action === 'GET_CREDITS')         return getCredits(data);
   if (action === 'MARK_CREDIT_PAID')    return markCreditPaid(data);
+  if (action === 'GET_MANAGER_REPORT')  return getManagerReport(data);
+  if (action === 'GET_STOCK_LIVE')      return getStockLive();
   return { ok: false, error: 'Unknown action' };
 }
 function respond(obj) {
@@ -852,6 +854,110 @@ function sendWeeklyCreditSummary() {
   } catch(e) {
     Logger.log('Weekly credit summary failed: ' + e);
   }
+}
+
+// ── GET MANAGER REPORT ────────────────────────────────────────────
+function getManagerReport(data) {
+  var wb = SpreadsheetApp.openById(SHEET_ID);
+
+  function parseDate(s) {
+    if (!s) return null;
+    if (s instanceof Date) return s;
+    var p = String(s).split('/');
+    if (p.length === 3) return new Date(+p[2], +p[1]-1, +p[0]);
+    return new Date(s);
+  }
+
+  var startD = parseDate(data.startDate) || new Date(0);
+  var endD   = parseDate(data.endDate)   || new Date();
+  endD.setHours(23, 59, 59, 999);
+
+  var totalRevenue = 0, totalTransactions = 0, totalUnits = 0;
+  var cash = 0, momo = 0, credit = 0;
+  var prodTotals = {}, bartenderMap = {}, dailyMap = {};
+
+  var salesSheet = wb.getSheetByName('Sales Log');
+  if (salesSheet && salesSheet.getLastRow() > 1) {
+    // Sales Log columns: Date(0) | Time(1) | Bartender(2) | Table(3) | Product(4) | Qty(5) | UnitPrice(6) | Revenue(7) | Payment(8)
+    var rows = salesSheet.getRange(2, 1, salesSheet.getLastRow() - 1, 9).getValues();
+    rows.forEach(function(r) {
+      if (!r[0]) return;
+      var rowDate = r[0] instanceof Date ? r[0] : parseDate(r[0]);
+      if (!rowDate || rowDate < startD || rowDate > endD) return;
+
+      var bartender = r[2] || '—';
+      var product   = r[4] || '';   // Column E — product name
+      var qty       = Number(r[5]) || 0;  // Column F — quantity
+      var revenue   = Number(r[7]) || 0;  // Column H — revenue
+      var method    = String(r[8] || 'CASH').toUpperCase();
+      var dateKey   = r[0] instanceof Date
+        ? r[0].toLocaleDateString('en-GB')
+        : String(r[0]);
+
+      totalRevenue += revenue;
+      totalUnits   += qty;
+      totalTransactions++;
+
+      if (method === 'CASH')        cash   += revenue;
+      else if (method === 'MOMO')   momo   += revenue;
+      else if (method === 'CREDIT') credit += revenue;
+
+      if (product) prodTotals[product] = (prodTotals[product] || 0) + qty;
+
+      if (!bartenderMap[bartender]) bartenderMap[bartender] = { name: bartender, revenue: 0, transactions: 0 };
+      bartenderMap[bartender].revenue      += revenue;
+      bartenderMap[bartender].transactions++;
+
+      if (!dailyMap[dateKey]) dailyMap[dateKey] = { date: dateKey, revenue: 0, transactions: 0, cash: 0, momo: 0, credit: 0 };
+      dailyMap[dateKey].revenue      += revenue;
+      dailyMap[dateKey].transactions++;
+      if (method === 'CASH')        dailyMap[dateKey].cash   += revenue;
+      else if (method === 'MOMO')   dailyMap[dateKey].momo   += revenue;
+      else if (method === 'CREDIT') dailyMap[dateKey].credit += revenue;
+    });
+  }
+
+  var topProducts = Object.keys(prodTotals)
+    .map(function(p) { return { product: p, sold: prodTotals[p] }; })
+    .sort(function(a, b) { return b.sold - a.sold; })
+    .slice(0, 10);
+
+  var bartenders = Object.values(bartenderMap)
+    .sort(function(a, b) { return b.revenue - a.revenue; });
+
+  var dailyBreakdown = Object.values(dailyMap)
+    .sort(function(a, b) {
+      var da = a.date.split('/'), db = b.date.split('/');
+      return new Date(+da[2], +da[1]-1, +da[0]) - new Date(+db[2], +db[1]-1, +db[0]);
+    });
+
+  return {
+    ok: true,
+    totalRevenue: totalRevenue,
+    totalTransactions: totalTransactions,
+    totalUnits: totalUnits,
+    cash: cash,
+    momo: momo,
+    credit: credit,
+    topProducts: topProducts,
+    bartenders: bartenders,
+    dailyBreakdown: dailyBreakdown
+  };
+}
+
+// ── GET STOCK LIVE ────────────────────────────────────────────────
+function getStockLive() {
+  var wb    = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = wb.getSheetByName('Closing Stock');
+  if (!sheet || sheet.getLastRow() <= 1) return { ok: true, stock: [] };
+
+  // Closing Stock columns: Product(A=0) | Remaining(B=1) | Date(C=2)
+  var rows  = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getValues();
+  var stock = rows
+    .filter(function(r) { return r[0] !== ''; })
+    .map(function(r) { return { product: String(r[0]), remaining: Number(r[1]) || 0 }; });
+
+  return { ok: true, stock: stock };
 }
 
 // ── HELPER ────────────────────────────────────────────────────────
