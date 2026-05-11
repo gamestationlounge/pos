@@ -2675,18 +2675,173 @@ function printMgrReport() {
   if (w) { w.document.write(html); w.document.close(); }
 }
 
-function downloadMgrReport() {
+function loadScript(src) {
+  return new Promise(function(resolve, reject) {
+    if (document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function downloadMgrReport() {
   if (!_mgrReportData) { showToast('Load a report first', 'warn'); return; }
-  const html = buildMgrReportHtml();
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
-  const safe = (_mgrReportFrom + '_' + _mgrReportTo).replace(/\//g, '-') || 'report';
-  a.download = 'GSL_Manager_Report_' + safe + '.html';
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('Report downloaded — open in browser then Print → Save as PDF');
+  showToast('Generating PDF...');
+  try {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js');
+  } catch(e) { showToast('PDF library failed — check internet', 'warn'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const d = _mgrReportData;
+  const cash=d.cash||0, momo=d.momo||0, credit=d.credit||0;
+  const rev=d.totalRevenue||0, txns=d.totalTransactions||0, units=d.totalUnits||0;
+  const collected=cash+momo;
+  const topProds=d.topProducts||[], bartenders=d.bartenders||[], daily=d.dailyBreakdown||[];
+  const W=210, H=297, mg=14, cW=W-mg*2;
+  let y=0;
+
+  const NAVY=[30,58,95], AMBER=[245,158,11], GREEN=[22,163,74], BLUE=[29,78,216];
+  const LIGHT=[248,250,252], BORDER=[229,231,235], WHITE=[255,255,255];
+  const DARK=[17,24,39], MUTED=[107,114,128], AMBL=[254,243,199];
+
+  const fill=(x,y,w,h,col)=>{doc.setFillColor(...col);doc.rect(x,y,w,h,'F');};
+  const txt=(s,x,y,o={})=>{
+    doc.setTextColor(...(o.color||DARK));
+    doc.setFontSize(o.size||10);
+    doc.setFont('helvetica',o.bold?'bold':'normal');
+    doc.text(String(s),x,y,{align:o.align||'left'});
+  };
+
+  // ── HEADER
+  fill(0,0,W,26,NAVY);
+  txt('GAME STATION LOUNGE',mg,10,{size:15,bold:true,color:AMBER});
+  txt('MANAGER REPORT  ·  CONFIDENTIAL',mg,16,{size:7.5,color:[148,163,184]});
+  txt('Tel: +250 796 706 380',W-mg,10,{size:7.5,color:[148,163,184],align:'right'});
+  txt('Generated: '+new Date().toLocaleString('en-GB'),W-mg,16,{size:7.5,color:[148,163,184],align:'right'});
+  y=31;
+
+  // ── PERIOD BAR
+  fill(mg,y,cW,9,AMBL);
+  doc.setDrawColor(...AMBER);doc.setLineWidth(0.5);doc.rect(mg,y,cW,9);
+  txt('REPORT PERIOD',mg+3,y+6,{size:7,bold:true,color:[146,64,14]});
+  const period=_mgrReportFrom===_mgrReportTo?_mgrReportFrom:_mgrReportFrom+'  →  '+_mgrReportTo;
+  txt(period,W-mg-3,y+6,{size:8.5,bold:true,color:[120,53,15],align:'right'});
+  y+=14;
+
+  // ── KPI CARDS
+  const kW=(cW-8)/3;
+  [{label:'TOTAL REVENUE',val:rev.toLocaleString()+' RWF',col:AMBER},
+   {label:'TRANSACTIONS',val:String(txns),col:DARK},
+   {label:'UNITS SOLD',val:units.toLocaleString(),col:DARK}
+  ].forEach((k,i)=>{
+    const kx=mg+i*(kW+4);
+    fill(kx,y,kW,17,LIGHT);
+    doc.setDrawColor(...BORDER);doc.setLineWidth(0.2);doc.rect(kx,y,kW,17);
+    txt(k.label,kx+3,y+5.5,{size:6.5,color:MUTED});
+    txt(k.val,kx+3,y+13,{size:10,bold:true,color:k.col});
+  });
+  y+=22;
+
+  // ── PAYMENT STRIP
+  const pW=(cW-12)/4;
+  [{label:'CASH',val:cash.toLocaleString(),bg:[240,253,244],bdr:[134,239,172],col:GREEN},
+   {label:'MOMO',val:momo.toLocaleString(),bg:[239,246,255],bdr:[147,197,253],col:BLUE},
+   {label:'CREDIT',val:credit.toLocaleString(),bg:AMBL,bdr:[252,211,77],col:AMBER},
+   {label:'COLLECTED',val:collected.toLocaleString(),bg:[240,253,244],bdr:GREEN,col:GREEN}
+  ].forEach((p,i)=>{
+    const px=mg+i*(pW+4);
+    fill(px,y,pW,15,p.bg);
+    doc.setDrawColor(...p.bdr);doc.setLineWidth(0.4);doc.rect(px,y,pW,15);
+    txt(p.label,px+pW/2,y+5.5,{size:6.5,color:MUTED,align:'center'});
+    txt(p.val,px+pW/2,y+12,{size:9,bold:true,color:p.col,align:'center'});
+  });
+  y+=20;
+
+  const sec=(title)=>{
+    if(y>265){doc.addPage();y=14;}
+    fill(mg,y,cW,7,NAVY);
+    txt(title,mg+3,y+5,{size:7.5,bold:true,color:WHITE});
+    y+=10;
+  };
+
+  // ── TOP PRODUCTS BAR CHART
+  if(topProds.length){
+    sec('TOP PRODUCTS — UNITS SOLD');
+    const bAW=cW-52, maxS=topProds[0].sold;
+    topProds.slice(0,10).forEach((p,i)=>{
+      const by=y+i*7.5;
+      if(by>272) return;
+      txt(p.product.substring(0,22),mg,by+5,{size:7,color:DARK});
+      fill(mg+50,by,bAW,5.5,LIGHT);
+      fill(mg+50,by,Math.max(2,p.sold/maxS*bAW),5.5,AMBER);
+      txt(p.sold+' u',W-mg,by+5,{size:6.5,color:MUTED,align:'right'});
+    });
+    y+=Math.min(10,topProds.length)*7.5+5;
+  }
+
+  // ── PRODUCT TABLE
+  if(topProds.length){
+    sec('PRODUCT SALES TABLE');
+    doc.autoTable({startY:y,margin:{left:mg,right:mg},
+      head:[['#','Product','Units Sold']],
+      body:topProds.map((p,i)=>[i+1,p.product,p.sold]),
+      headStyles:{fillColor:NAVY,textColor:WHITE,fontSize:8,fontStyle:'bold'},
+      bodyStyles:{fontSize:8.5,textColor:DARK},
+      alternateRowStyles:{fillColor:LIGHT},
+      columnStyles:{0:{cellWidth:10,halign:'center'},2:{halign:'right',fontStyle:'bold'}},
+      styles:{lineColor:BORDER,lineWidth:0.1}});
+    y=doc.lastAutoTable.finalY+7;
+  }
+
+  // ── BARTENDERS
+  if(bartenders.length){
+    sec('REVENUE BY BARTENDER');
+    doc.autoTable({startY:y,margin:{left:mg,right:mg},
+      head:[['Bartender','Transactions','Revenue (RWF)']],
+      body:bartenders.map(b=>[b.name,b.transactions,b.revenue.toLocaleString()]),
+      headStyles:{fillColor:NAVY,textColor:WHITE,fontSize:8,fontStyle:'bold'},
+      bodyStyles:{fontSize:8.5,textColor:DARK},
+      alternateRowStyles:{fillColor:LIGHT},
+      columnStyles:{1:{halign:'center'},2:{halign:'right',fontStyle:'bold',textColor:GREEN}},
+      styles:{lineColor:BORDER,lineWidth:0.1}});
+    y=doc.lastAutoTable.finalY+7;
+  }
+
+  // ── DAILY BREAKDOWN
+  if(daily.length){
+    sec('DAILY BREAKDOWN');
+    doc.autoTable({startY:y,margin:{left:mg,right:mg},
+      head:[['Date','Txns','Cash','MoMo','Credit','Total (RWF)']],
+      body:daily.map(dv=>[dv.date,dv.transactions,
+        (dv.cash||0).toLocaleString(),(dv.momo||0).toLocaleString(),
+        (dv.credit||0).toLocaleString(),(dv.revenue||0).toLocaleString()]),
+      foot:[['TOTAL',txns,cash.toLocaleString(),momo.toLocaleString(),
+        credit.toLocaleString(),rev.toLocaleString()]],
+      headStyles:{fillColor:NAVY,textColor:WHITE,fontSize:7.5,fontStyle:'bold'},
+      footStyles:{fillColor:NAVY,textColor:WHITE,fontSize:7.5,fontStyle:'bold'},
+      bodyStyles:{fontSize:8,textColor:DARK},
+      alternateRowStyles:{fillColor:LIGHT},
+      columnStyles:{1:{halign:'center'},2:{halign:'right',textColor:GREEN},
+        3:{halign:'right',textColor:BLUE},4:{halign:'right'},
+        5:{halign:'right',fontStyle:'bold'}},
+      styles:{lineColor:BORDER,lineWidth:0.1}});
+  }
+
+  // ── FOOTER on every page
+  const pages=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pages;i++){
+    doc.setPage(i);
+    fill(0,H-10,W,10,NAVY);
+    txt('Game Station Lounge POS  ·  Manager Report  ·  CONFIDENTIAL',
+      mg,H-4,{size:6.5,color:[148,163,184]});
+    txt('Page '+i+' of '+pages,W-mg,H-4,{size:6.5,color:[148,163,184],align:'right'});
+  }
+
+  const safe=(_mgrReportFrom+'_'+_mgrReportTo).replace(///g,'-')||'report';
+  doc.save('GSL_Manager_Report_'+safe+'.pdf');
+  showToast('PDF downloaded!');
 }
 
 // ─── STOCK TAB ─────────────────────────────────────────────────
