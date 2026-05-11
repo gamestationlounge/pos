@@ -862,6 +862,10 @@ header{display:flex;align-items:center;justify-content:space-between;padding:.65
 <div id="toast"></div>
 
 <script>
+let _mgrReportData = null;
+let _mgrReportFrom = '';
+let _mgrReportTo = '';
+
 const API = 'https://script.google.com/macros/s/AKfycbxt5HEl8mQ6ttzgGnIsxoqPegrNxnSCyw6EK1OUKQ-MdZVB0hta63Wb1JUfK1BuwJ3p/exec';
 
 const PRODUCTS = [
@@ -2399,6 +2403,7 @@ function renderMgrReportFromLocal(content, from, to, fromStr, toStr) {
 }
 
 function renderMgrReportContent(content, data, fromStr, toStr) {
+  _mgrReportData = data; _mgrReportFrom = fromStr; _mgrReportTo = toStr;
   const topProds = data.topProducts || [];
   const bartenders = data.bartenders || [];
   const daily = data.dailyBreakdown || [];
