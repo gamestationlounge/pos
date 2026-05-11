@@ -2495,103 +2495,130 @@ function printMgrReport() {
 }
 
 async function downloadMgrReport() {
-  if (!_mgrReportData) { showToast('Load a report first', 'warn'); return; }
-  showToast('Generating PDF...');
+  showToast('Generating PDF...', 'info');
 
-  // Load jsPDF from CDN
-  if (!window.jspdf) {
-    await new Promise((resolve, reject) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-      s.onload = resolve;
-      s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
+  try {
+    // Load jsPDF if not already loaded
+    if (!window.jspdf) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('Failed to load jsPDF'));
+        document.head.appendChild(s);
+        setTimeout(() => reject(new Error('Timeout')), 10000);
+      });
+    }
 
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const d = _mgrReportData;
-  const mg = 14, W = 210;
-  let y = 14;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const mg = 14, W = 210;
+    let y = 14;
 
-  // Header
-  doc.setFillColor(30, 58, 95);
-  doc.rect(0, 0, W, 22, 'F');
-  doc.setTextColor(245, 158, 11);
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text('GAME STATION LOUNGE', mg, 10);
-  doc.setFontSize(8);
-  doc.setTextColor(148, 163, 184);
-  doc.text('MANAGER REPORT — CONFIDENTIAL', mg, 17);
-  doc.text('Generated: ' + new Date().toLocaleString(), W - mg, 17, { align: 'right' });
-  y = 28;
+    // Use available data
+    const d = _mgrReportData || {};
+    const rev = d.totalRevenue || totalRevenue || 0;
+    const cash = d.cash || 0;
+    const momo = d.momo || 0;
+    const credit = d.credit || 0;
+    const txns = d.totalTransactions || txCount || 0;
+    const fromStr = _mgrReportFrom || new Date().toLocaleDateString();
+    const toStr = _mgrReportTo || new Date().toLocaleDateString();
 
-  // Period
-  doc.setFontSize(10);
-  doc.setTextColor(17, 24, 39);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Period: ' + _mgrReportFrom + ' → ' + _mgrReportTo, mg, y);
-  y += 10;
-
-  // Stats
-  const rev = d.totalRevenue || 0;
-  const cash = d.cash || 0;
-  const momo = d.momo || 0;
-  const credit = d.credit || 0;
-  const txns = d.totalTransactions || 0;
-
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(17, 24, 39);
-  [
-    ['Total Revenue', rev.toLocaleString() + ' RWF'],
-    ['Cash Collected', cash.toLocaleString() + ' RWF'],
-    ['MoMo Collected', momo.toLocaleString() + ' RWF'],
-    ['Credit Given', credit.toLocaleString() + ' RWF'],
-    ['Total Transactions', String(txns)]
-  ].forEach(([label, val]) => {
-    doc.text(label + ':', mg, y);
-    doc.setFont('helvetica', 'bold');
-    doc.text(val, W - mg, y, { align: 'right' });
-    doc.setFont('helvetica', 'normal');
-    y += 7;
-  });
-  y += 5;
-
-  // Top Products
-  const prods = d.topProducts || [];
-  if (prods.length) {
+    // Header background
     doc.setFillColor(30, 58, 95);
-    doc.rect(mg, y, W - mg * 2, 7, 'F');
+    doc.rect(0, 0, W, 24, 'F');
+
+    // Title
+    doc.setTextColor(245, 158, 11);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('GAME STATION LOUNGE', mg, 11);
+
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text('MANAGER REPORT — CONFIDENTIAL', mg, 18);
+    doc.text('Generated: ' + new Date().toLocaleString(), W - mg, 18, { align: 'right' });
+    y = 32;
+
+    // Period
+    doc.setFontSize(11);
+    doc.setTextColor(17, 24, 39);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Period: ' + fromStr + ' to ' + toStr, mg, y);
+    y += 12;
+
+    // Stats section header
+    doc.setFillColor(30, 58, 95);
+    doc.rect(mg, y, W - mg * 2, 8, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
-    doc.text('TOP PRODUCTS', mg + 2, y + 5);
-    y += 10;
-    prods.slice(0, 10).forEach((p, i) => {
-      doc.setTextColor(17, 24, 39);
+    doc.text('FINANCIAL SUMMARY', mg + 3, y + 5.5);
+    y += 12;
+
+    // Stats
+    const stats = [
+      ['Total Revenue', rev.toLocaleString() + ' RWF', [245, 158, 11]],
+      ['Cash Collected', cash.toLocaleString() + ' RWF', [22, 163, 74]],
+      ['MoMo Collected', momo.toLocaleString() + ' RWF', [29, 78, 216]],
+      ['Credit Given', credit.toLocaleString() + ' RWF', [245, 158, 11]],
+      ['Total Collected', (cash + momo).toLocaleString() + ' RWF', [22, 163, 74]],
+      ['Total Transactions', String(txns), [17, 24, 39]]
+    ];
+
+    stats.forEach(([label, val, color]) => {
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
-      doc.text((i + 1) + '. ' + p.product, mg, y);
+      doc.setTextColor(107, 114, 128);
+      doc.text(label + ':', mg, y);
       doc.setFont('helvetica', 'bold');
-      doc.text(p.sold + ' units', W - mg, y, { align: 'right' });
-      y += 6;
+      doc.setTextColor(...color);
+      doc.text(val, W - mg, y, { align: 'right' });
+      y += 8;
     });
+    y += 5;
+
+    // Top Products
+    const prods = (d.topProducts || []);
+    if (prods.length > 0) {
+      doc.setFillColor(30, 58, 95);
+      doc.rect(mg, y, W - mg * 2, 8, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TOP PRODUCTS', mg + 3, y + 5.5);
+      y += 12;
+
+      prods.slice(0, 10).forEach((p, i) => {
+        doc.setTextColor(17, 24, 39);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text((i + 1) + '. ' + p.product, mg, y);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(245, 158, 11);
+        doc.text(p.sold + ' units', W - mg, y, { align: 'right' });
+        y += 7;
+      });
+    }
+
+    // Footer
+    doc.setFillColor(30, 58, 95);
+    doc.rect(0, 285, W, 12, 'F');
+    doc.setTextColor(148, 163, 184);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Game Station Lounge POS — Manager Report — CONFIDENTIAL', mg, 292);
+    doc.text('+250 796 706 380', W - mg, 292, { align: 'right' });
+
+    // Download
+    const filename = 'GSL_Report_' + fromStr.replace(/\//g, '-') + '.pdf';
+    doc.save(filename);
+    showToast('PDF downloaded successfully! ✓');
+
+  } catch(err) {
+    console.error('PDF error:', err);
+    showToast('PDF failed: ' + err.message, 'warn');
   }
-
-  // Footer
-  doc.setFillColor(30, 58, 95);
-  doc.rect(0, 287, W, 10, 'F');
-  doc.setTextColor(148, 163, 184);
-  doc.setFontSize(6.5);
-  doc.text('Game Station Lounge POS — Manager Report', mg, 293);
-
-  // Save
-  const filename = 'GSL_Report_' + (_mgrReportFrom || 'today').replace(/\//g, '-') + '.pdf';
-  doc.save(filename);
-  showToast('PDF downloaded! ✓');
 }
 
 // ─── STOCK TAB ─────────────────────────────────────────────────
