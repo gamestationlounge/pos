@@ -110,6 +110,8 @@ function getResult(data) {
   if (action === 'SAVE_CREDIT')         return saveCredit(data);
   if (action === 'GET_CREDITS')         return getCredits(data);
   if (action === 'MARK_CREDIT_PAID')    return markCreditPaid(data);
+  if (action === 'GET_MANAGER_REPORT')  return getManagerReport(data);
+  if (action === 'GET_STOCK_LIVE')      return getStockLive();
   return { ok: false, error: 'Unknown action' };
 }
 function respond(obj) {
@@ -793,6 +795,94 @@ function sendCreditEmail(data) {
   } catch(e) {
     Logger.log('Credit email failed: ' + e);
   }
+}
+
+// ── 10. GET MANAGER REPORT ───────────────────────────────────────
+function getManagerReport(data) {
+  const wb = SpreadsheetApp.openById(SHEET_ID);
+
+  // Parse date range (DD/MM/YYYY format from front-end)
+  function parseDate(s) {
+    if (!s) return null;
+    const p = String(s).split('/');
+    if (p.length === 3) return new Date(+p[2], +p[1]-1, +p[0]);
+    return new Date(s);
+  }
+  const startD = parseDate(data.startDate) || new Date(0);
+  const endD   = parseDate(data.endDate)   || new Date();
+  endD.setHours(23,59,59,999);
+
+  // ── Sales Log ────────────────────────────────────────────────
+  const salesSheet = wb.getSheetByName('Sales Log');
+  let totalRevenue = 0, totalTransactions = 0, totalUnits = 0;
+  let cash = 0, momo = 0, credit = 0;
+  const prodTotals = {}, bartenderMap = {};
+  const dailyMap   = {};
+
+  if (salesSheet && salesSheet.getLastRow() > 1) {
+    const rows = salesSheet.getRange(2, 1, salesSheet.getLastRow()-1, 9).getValues();
+    rows.forEach(function(r) {
+      if (!r[0]) return;
+      const rowDate = r[0] instanceof Date ? r[0] : parseDate(r[0]);
+      if (!rowDate || rowDate < startD || rowDate > endD) return;
+
+      const bartender = r[2] || '—';
+      const product   = r[4] || '';
+      const qty       = Number(r[5]) || 0;
+      const revenue   = Number(r[7]) || 0;
+      const method    = (r[8] || 'CASH').toString().toUpperCase();
+      const dateKey   = r[0] instanceof Date
+        ? r[0].toLocaleDateString('en-GB')
+        : String(r[0]);
+
+      totalRevenue += revenue;
+      totalUnits   += qty;
+      totalTransactions++;
+
+      if (method === 'CASH')   cash   += revenue;
+      else if (method === 'MOMO')   momo   += revenue;
+      else if (method === 'CREDIT') credit += revenue;
+
+      if (product) prodTotals[product] = (prodTotals[product]||0) + qty;
+
+      if (!bartenderMap[bartender]) bartenderMap[bartender] = {name:bartender,revenue:0,transactions:0};
+      bartenderMap[bartender].revenue      += revenue;
+      bartenderMap[bartender].transactions++;
+
+      if (!dailyMap[dateKey]) dailyMap[dateKey] = {date:dateKey,revenue:0,transactions:0,cash:0,momo:0,credit:0};
+      dailyMap[dateKey].revenue      += revenue;
+      dailyMap[dateKey].transactions++;
+      if (method==='CASH')   dailyMap[dateKey].cash   += revenue;
+      else if (method==='MOMO')   dailyMap[dateKey].momo   += revenue;
+      else if (method==='CREDIT') dailyMap[dateKey].credit += revenue;
+    });
+  }
+
+  const topProducts = Object.entries(prodTotals)
+    .sort(function(a,b){return b[1]-a[1];})
+    .slice(0,10)
+    .map(function(e){return {product:e[0],sold:e[1]};});
+
+  const bartenders = Object.values(bartenderMap)
+    .sort(function(a,b){return b.revenue-a.revenue;});
+
+  const dailyBreakdown = Object.values(dailyMap)
+    .sort(function(a,b){
+      const da = a.date.split('/'), db = b.date.split('/');
+      return new Date(+da[2],+da[1]-1,+da[0]) - new Date(+db[2],+db[1]-1,+db[0]);
+    });
+
+  return {
+    ok: true,
+    totalRevenue, totalTransactions, totalUnits,
+    cash, momo, credit,
+    topProducts, bartenders, dailyBreakdown
+  };
+}
+
+// ── 11. GET STOCK LIVE ────────────────────────────────────────────
+function getStockLive() {
+  return getLastStock();
 }
 
 // ── WEEKLY CREDIT SUMMARY EMAIL ───────────────────────────────────
